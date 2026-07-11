@@ -38,10 +38,10 @@ fs.copyFileSync(path.join(__dirname, '../node_modules/bootstrap3/dist/js/bootstr
 fs.mkdirSync(path.join(__dirname, '../dist/thirdparty/fonts'), { recursive: true });
 fs.copyFileSync(path.join(__dirname, '../node_modules/bootstrap3/dist/fonts/glyphicons-halflings-regular.woff2'), path.join(__dirname, '../dist/thirdparty/fonts/glyphicons-halflings-regular.woff2'));
 fs.mkdirSync(path.join(__dirname, '../dist/thirdparty/mathjax'), { recursive: true });
-fs.copyFileSync(path.join(__dirname, '../node_modules/mathjax/es5/tex-mml-chtml.js'), path.join(__dirname, '../dist/thirdparty/mathjax/tex-mml-chtml.js'));
+fs.copyFileSync(path.join(__dirname, '../node_modules/mathjax/tex-mml-chtml.js'), path.join(__dirname, '../dist/thirdparty/mathjax/tex-mml-chtml.js'));
 fs.cpSync(
-  path.join(__dirname, '../node_modules/mathjax/es5/output/chtml/fonts'),
-  path.join(__dirname, '../dist/thirdparty/mathjax/output/chtml/fonts'),
+  path.join(__dirname, '../node_modules/@mathjax/mathjax-newcm-font'),
+  path.join(__dirname, '../dist/thirdparty/mathjax-newcm-font'),
   { recursive: true }
 );
 
