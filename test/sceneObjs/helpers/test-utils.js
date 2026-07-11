@@ -46,14 +46,17 @@ export function createMockObjBar() {
       }
     },
 
-    createNumber: function(label, min, max, step, initValue, callback) {
+    createNumber: function(label, min, max, step, initValue, callback, info, hideSlider, highlightGroup, updateOnChange = false) {
       const control = {
         label,
         value: initValue,
-        updateOnChange: false,
+        updateOnChange,
         setValue: (value) => {
           control.value = value;
           callback(this.targetObj, value);
+          if (updateOnChange) {
+            this.emit('requestUpdate', null);
+          }
         }
       };
       this.controls.push(control);
@@ -109,14 +112,17 @@ export function createMockObjBar() {
       return control;
     },
 
-    createTuple: function(label, initValue, callback, info) {
+    createTuple: function(label, initValue, callback, info, updateOnChange = false) {
       const control = {
         label,
         value: initValue,
-        updateOnChange: false,
+        updateOnChange,
         setValue: (value) => {
           control.value = value;
           callback(this.targetObj, value);
+          if (updateOnChange) {
+            this.emit('requestUpdate', null);
+          }
         }
       };
       this.controls.push(control);

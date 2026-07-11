@@ -92,6 +92,7 @@ class Beam extends LineObjMixin(BaseSceneObj) {
         obj.random = value;
       });
     }
+    super.populateObjBar(objBar);
   }
 
   onConstructMouseDown(mouse, ctrl, shift) {

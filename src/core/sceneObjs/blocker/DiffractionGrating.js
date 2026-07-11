@@ -95,6 +95,7 @@ class DiffractionGrating extends LineObjMixin(BaseSceneObj) {
         obj.mirrored = value;
       });
     }
+    super.populateObjBar(objBar);
   }
 
   draw(canvasRenderer, isAboveLight, isHovered) {

@@ -118,6 +118,7 @@ class Detector extends LineObjMixin(BaseSceneObj) {
         link.click();
       });
     }
+    super.populateObjBar(objBar);
   }
 
   draw(canvasRenderer, isAboveLight, isHovered) {

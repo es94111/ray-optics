@@ -19,9 +19,30 @@ import BaseSceneObj from './BaseSceneObj.js';
 import i18next from 'i18next';
 
 /**
+ * Format a point as a coordinate tuple string for display in the object bar.
+ * @param {Point} p - The point.
+ * @returns {string} The formatted string "(x, y)".
+ */
+const formatCoordinates = p => '(' + (Math.round(p.x * 1000000) / 1000000) + ', ' + (Math.round(p.y * 1000000) / 1000000) + ')';
+
+/**
+ * Parse a coordinate tuple string (e.g. "(10, 20)" or "10, 20") entered in the object bar. Full-width parentheses and commas from CJK input methods are also accepted.
+ * @param {string} value - The input string.
+ * @returns {Point|null} The parsed point, or null if the input is invalid.
+ */
+const parseCoordinates = value => {
+  const parts = String(value).replace(/[()（）\s]/g, '').split(/[,，]/);
+  if (parts.length !== 2) return null;
+  const x = parseFloat(parts[0]);
+  const y = parseFloat(parts[1]);
+  if (isNaN(x) || isNaN(y)) return null;
+  return geometry.point(x, y);
+};
+
+/**
  * The mixin for the scene objects that are defined by a line segment.
  * @template {typeof BaseSceneObj} T
- * @param {T} Base 
+ * @param {T} Base
  * @returns {T}
  */
 const LineObjMixin = Base => class extends Base {
@@ -32,6 +53,53 @@ const LineObjMixin = Base => class extends Base {
       { key: 'p2', type: 'point', label: i18next.t('simulator:sceneObjs.LineObjMixin.endpoint2') },
       ...super.getPropertySchema(objData, scene),
     ];
+  }
+
+  /**
+   * Get the angle of the line segment (direction from `p1` to `p2`) in degrees, as seen on the screen: measured counterclockwise from the positive x-axis. Since the internal y-axis points downwards, the sign is flipped with respect to `Math.atan2`.
+   * @returns {number} The angle in degrees, within (-180, 180].
+   */
+  getScreenAngle() {
+    return -Math.atan2(this.p2.y - this.p1.y, this.p2.x - this.p1.x) * 180 / Math.PI;
+  }
+
+  populateObjBar(objBar) {
+    // The object may be selected before its construction is completed, in which case the points do not exist yet.
+    if (this.p1 && this.p2) {
+      const schema = this.constructor.getPropertySchema(this.serialize(), this.scene);
+      const p1Label = (schema.find(item => item.key === 'p1') || {}).label || i18next.t('simulator:sceneObjs.LineObjMixin.endpoint1');
+      const p2Label = (schema.find(item => item.key === 'p2') || {}).label || i18next.t('simulator:sceneObjs.LineObjMixin.endpoint2');
+
+      objBar.createTuple(p1Label, formatCoordinates(this.p1), function (obj, value) {
+        const p = parseCoordinates(value);
+        if (p) {
+          obj.p1 = p;
+        }
+      }, null, true);
+
+      objBar.createTuple(p2Label, formatCoordinates(this.p2), function (obj, value) {
+        const p = parseCoordinates(value);
+        if (p) {
+          obj.p2 = p;
+        }
+      }, null, true);
+
+      objBar.createTuple(i18next.t('simulator:sceneObjs.LineObjMixin.center'), formatCoordinates(this.getDefaultCenter()), function (obj, value) {
+        const p = parseCoordinates(value);
+        if (p) {
+          const center = obj.getDefaultCenter();
+          obj.move(p.x - center.x, p.y - center.y);
+        }
+      }, '<p>' + i18next.t('simulator:sceneObjs.LineObjMixin.centerInfo') + '</p>', true);
+
+      objBar.createNumber(i18next.t('simulator:sceneObjs.LineObjMixin.rotationAngle') + ' (°)', -180, 180, 1, this.getScreenAngle(), function (obj, value) {
+        if (isFinite(value)) {
+          obj.rotate(-(value - obj.getScreenAngle()) * Math.PI / 180);
+        }
+      }, '<p>' + i18next.t('simulator:sceneObjs.LineObjMixin.rotationAngleInfo') + '</p>', false, false, true);
+    }
+
+    super.populateObjBar(objBar);
   }
 
   move(diffX, diffY) {
@@ -123,13 +191,15 @@ const LineObjMixin = Base => class extends Base {
     if (!mouse.snapsOnPoint(this.p1)) {
       delete this.constructionPoint;
       return {
-        isDone: true
+        isDone: true,
+        requiresObjBarUpdate: true
       };
     }
   }
 
   checkMouseOver(mouse) {
     let dragContext = {};
+    dragContext.requiresObjBarUpdate = true; // The object bar shows the coordinates of the points, which change during dragging.
     if (mouse.isOnPoint(this.p1) && geometry.distanceSquared(mouse.pos, this.p1) <= geometry.distanceSquared(mouse.pos, this.p2)) {
       dragContext.part = 1;
       dragContext.targetPoint = geometry.point(this.p1.x, this.p1.y);

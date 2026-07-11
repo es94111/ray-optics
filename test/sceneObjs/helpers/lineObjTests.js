@@ -380,4 +380,58 @@ export function testLineObj(getTestContext) {
     expect(result.p2.y).toBeCloseTo(150, 5);
     expect(result.type).toBe(obj.constructor.type);
   });
+
+  it('shows and edits endpoint coordinates in the object bar', () => {
+    user.drag(100, 100, 200, 100);
+
+    const schema = obj.constructor.getPropertySchema(obj.serialize(), obj.scene);
+    const p1Label = (schema.find(item => item.key === 'p1') || {}).label || '{{simulator:sceneObjs.LineObjMixin.endpoint1}}';
+    const p2Label = (schema.find(item => item.key === 'p2') || {}).label || '{{simulator:sceneObjs.LineObjMixin.endpoint2}}';
+
+    expect(user.getValue(p1Label)).toBe('(100, 100)');
+    expect(user.getValue(p2Label)).toBe('(200, 100)');
+
+    user.set(p1Label, '(50, 80)');
+    user.set(p2Label, '250, 120');
+    expect(obj.serialize()).toEqual({
+      type: obj.constructor.type,
+      p1: { x: 50, y: 80 },
+      p2: { x: 250, y: 120 },
+    });
+  });
+
+  it('shows and edits the center in the object bar', () => {
+    user.drag(100, 100, 200, 100);
+
+    const centerLabel = '{{simulator:sceneObjs.LineObjMixin.center}}';
+    const initialCenter = obj.getDefaultCenter();
+    expect(user.getValue(centerLabel)).toBe('(' + initialCenter.x + ', ' + initialCenter.y + ')');
+
+    user.set(centerLabel, '(300, 400)');
+    const newCenter = obj.getDefaultCenter();
+    expect(newCenter.x).toBeCloseTo(300, 5);
+    expect(newCenter.y).toBeCloseTo(400, 5);
+    // The shape is preserved when moving by the center
+    expect(obj.p2.x - obj.p1.x).toBeCloseTo(100, 5);
+    expect(obj.p2.y - obj.p1.y).toBeCloseTo(0, 5);
+  });
+
+  it('shows and edits the rotation angle in the object bar', () => {
+    user.drag(100, 100, 200, 100);
+
+    const angleLabel = '{{simulator:sceneObjs.LineObjMixin.rotationAngle}}';
+    expect(user.getValue(angleLabel)).toBeCloseTo(0, 5);
+
+    const initialCenter = { ...obj.getDefaultCenter() };
+    user.set(angleLabel, 90);
+    expect(obj.getScreenAngle()).toBeCloseTo(90, 5);
+    expect(user.getValue(angleLabel)).toBeCloseTo(90, 5);
+    // The length and the default center are preserved
+    expect(Math.hypot(obj.p2.x - obj.p1.x, obj.p2.y - obj.p1.y)).toBeCloseTo(100, 5);
+    const newCenter = obj.getDefaultCenter();
+    expect(newCenter.x).toBeCloseTo(initialCenter.x, 5);
+    expect(newCenter.y).toBeCloseTo(initialCenter.y, 5);
+    // The angle is counterclockwise as seen on the screen, and the internal y-axis points downwards, so the second point ends up above the first one
+    expect(obj.p2.y).toBeLessThan(obj.p1.y);
+  });
 } 

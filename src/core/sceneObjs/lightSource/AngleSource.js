@@ -84,6 +84,7 @@ class AngleSource extends LineObjMixin(BaseSceneObj) {
         obj.symmetric = value;
       });
     }
+    super.populateObjBar(objBar);
   }
 
   onConstructMouseDown(mouse, ctrl, shift) {

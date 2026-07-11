@@ -54,6 +54,7 @@ class Ruler extends LineObjMixin(BaseSceneObj) {
     objBar.createNumber(i18next.t('simulator:sceneObjs.Ruler.scaleInterval'), 0, 10, 1, this.scaleInterval, function (obj, value) {
       obj.scaleInterval = value;
     }, i18next.t('simulator:sceneObjs.common.lengthUnitInfo'), true);
+    super.populateObjBar(objBar);
   }
 
   draw(canvasRenderer, isAboveLight, isHovered) {
