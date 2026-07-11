@@ -3,3 +3,5 @@
 /dist-node
 /dist-integrations
 .hintrc
+.claude/settings.local.json
+.claude/skills/

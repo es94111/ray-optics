@@ -1,0 +1,7 @@
+node_modules
+dist
+dist-node
+dist-integrations
+.vscode
+.claude
+npm-debug.log
