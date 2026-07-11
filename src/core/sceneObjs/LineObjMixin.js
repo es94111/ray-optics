@@ -17,27 +17,7 @@
 import geometry from '../geometry.js';
 import BaseSceneObj from './BaseSceneObj.js';
 import i18next from 'i18next';
-
-/**
- * Format a point as a coordinate tuple string for display in the object bar.
- * @param {Point} p - The point.
- * @returns {string} The formatted string "(x, y)".
- */
-const formatCoordinates = p => '(' + (Math.round(p.x * 1000000) / 1000000) + ', ' + (Math.round(p.y * 1000000) / 1000000) + ')';
-
-/**
- * Parse a coordinate tuple string (e.g. "(10, 20)" or "10, 20") entered in the object bar. Full-width parentheses and commas from CJK input methods are also accepted.
- * @param {string} value - The input string.
- * @returns {Point|null} The parsed point, or null if the input is invalid.
- */
-const parseCoordinates = value => {
-  const parts = String(value).replace(/[()（）\s]/g, '').split(/[,，]/);
-  if (parts.length !== 2) return null;
-  const x = parseFloat(parts[0]);
-  const y = parseFloat(parts[1]);
-  if (isNaN(x) || isNaN(y)) return null;
-  return geometry.point(x, y);
-};
+import { formatCoordinates, parseCoordinates, getScreenAngle } from './objBarUtils.js';
 
 /**
  * The mixin for the scene objects that are defined by a line segment.
@@ -60,7 +40,7 @@ const LineObjMixin = Base => class extends Base {
    * @returns {number} The angle in degrees, within (-180, 180].
    */
   getScreenAngle() {
-    return -Math.atan2(this.p2.y - this.p1.y, this.p2.x - this.p1.x) * 180 / Math.PI;
+    return getScreenAngle(this.p1, this.p2);
   }
 
   populateObjBar(objBar) {
