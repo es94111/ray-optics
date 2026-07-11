@@ -6,6 +6,8 @@
 [![Deploy website](https://github.com/ricktu288/ray-optics/actions/workflows/deploy.yml/badge.svg)](https://github.com/ricktu288/ray-optics/actions/workflows/deploy.yml)
 [![Deploy integrations](https://github.com/ricktu288/ray-optics/actions/workflows/deploy-integrations.yml/badge.svg)](https://github.com/ricktu288/ray-optics/actions/workflows/deploy-integrations.yml)
 
+> **Note:** This is a fork of [ricktu288/ray-optics](https://github.com/ricktu288/ray-optics), modified for a lab project. See `changelog.json` for fork-specific changes.
+
 A web app for creating and simulating 2D geometric optical scenes, with a gallery of (interactive) demos.
 
 ## Features
