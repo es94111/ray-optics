@@ -339,4 +339,46 @@ describe('ArcMirror', () => {
       expect(user.get("{{simulator:sceneObjs.common.focalLength}}")).toBeCloseTo(62.5, 3);
     });
   });
+
+  it('shows and edits the center (p3) in the object bar', () => {
+    user.click(100, 100);
+    user.click(200, 100);
+    user.click(150, 150);
+
+    const centerLabel = '{{simulator:sceneObjs.LineObjMixin.center}}';
+    expect(user.getValue(centerLabel)).toBe('(150, 150)');
+
+    user.set(centerLabel, '(400, 500)');
+    const result = obj.serialize();
+    // p3 (the default center) moves to the new position
+    expect(result.p3.x).toBeCloseTo(400, 5);
+    expect(result.p3.y).toBeCloseTo(500, 5);
+    // The shape is preserved: p1 and p2 shift by the same vector as p3
+    expect(result.p1.x).toBeCloseTo(350, 5);
+    expect(result.p1.y).toBeCloseTo(450, 5);
+    expect(result.p2.x).toBeCloseTo(450, 5);
+    expect(result.p2.y).toBeCloseTo(450, 5);
+  });
+
+  it('shows and edits the rotation angle in the object bar', () => {
+    user.click(100, 100);
+    user.click(200, 100);
+    user.click(150, 150);
+
+    const angleLabel = '{{simulator:sceneObjs.LineObjMixin.rotationAngle}}';
+    expect(user.getValue(angleLabel)).toBeCloseTo(0, 5);
+
+    user.set(angleLabel, 90);
+    expect(obj.getScreenAngle()).toBeCloseTo(90, 5);
+    expect(user.getValue(angleLabel)).toBeCloseTo(90, 5);
+
+    const result = obj.serialize();
+    // p3 (the rotation center) stays fixed
+    expect(result.p3.x).toBeCloseTo(150, 5);
+    expect(result.p3.y).toBeCloseTo(150, 5);
+    // Chord length is preserved
+    expect(Math.hypot(result.p2.x - result.p1.x, result.p2.y - result.p1.y)).toBeCloseTo(100, 5);
+    // The angle is counterclockwise as seen on the screen, and the internal y-axis points downwards
+    expect(result.p1.y).toBeGreaterThan(result.p2.y);
+  });
 }); 

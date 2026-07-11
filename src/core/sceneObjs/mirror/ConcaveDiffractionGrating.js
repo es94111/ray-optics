@@ -18,6 +18,7 @@ import i18next from 'i18next';
 import Simulator from '../../Simulator.js';
 import geometry from '../../geometry.js';
 import BaseSceneObj from '../BaseSceneObj.js';
+import { formatCoordinates, parseCoordinates, getScreenAngle } from '../objBarUtils.js';
 
 /**
  * Mirror with shape of a circular arc. Diffracts light. 
@@ -86,6 +87,40 @@ class ConcaveDiffractionGrating extends BaseSceneObj {
       objBar.createNumber(i18next.t('simulator:sceneObjs.DiffractionGrating.slitRatio'), 0, 1, 0.001, this.slitRatio, function (obj, value) {
         obj.slitRatio = value;
       });
+    }
+
+    if (this.p1 && this.p2 && this.p3) {
+      const schema = this.constructor.getPropertySchema(this.serialize(), this.scene);
+      const p1Label = (schema.find(item => item.key === 'p1') || {}).label || i18next.t('simulator:sceneObjs.LineObjMixin.endpoint1');
+      const p2Label = (schema.find(item => item.key === 'p2') || {}).label || i18next.t('simulator:sceneObjs.LineObjMixin.endpoint2');
+
+      objBar.createTuple(p1Label, formatCoordinates(this.p1), function (obj, value) {
+        const p = parseCoordinates(value);
+        if (p) {
+          obj.p1 = p;
+        }
+      }, null, true);
+
+      objBar.createTuple(p2Label, formatCoordinates(this.p2), function (obj, value) {
+        const p = parseCoordinates(value);
+        if (p) {
+          obj.p2 = p;
+        }
+      }, null, true);
+
+      objBar.createTuple(i18next.t('simulator:sceneObjs.LineObjMixin.center'), formatCoordinates(this.getDefaultCenter()), function (obj, value) {
+        const p = parseCoordinates(value);
+        if (p) {
+          const center = obj.getDefaultCenter();
+          obj.move(p.x - center.x, p.y - center.y);
+        }
+      }, '<p>' + i18next.t('simulator:sceneObjs.LineObjMixin.centerInfo') + '</p>', true);
+
+      objBar.createNumber(i18next.t('simulator:sceneObjs.LineObjMixin.rotationAngle') + ' (°)', -180, 180, 1, this.getScreenAngle(), function (obj, value) {
+        if (isFinite(value)) {
+          obj.rotate(-(value - obj.getScreenAngle()) * Math.PI / 180);
+        }
+      }, '<p>' + i18next.t('simulator:sceneObjs.LineObjMixin.rotationAngleInfo') + '</p>', false, false, true);
     }
   }
 
@@ -210,6 +245,14 @@ class ConcaveDiffractionGrating extends BaseSceneObj {
     return this.p3;
   }
 
+  /**
+   * Get the angle of the chord from `p1` to `p2`, in degrees, as seen on the screen (counterclockwise-positive). See `objBarUtils.getScreenAngle`.
+   * @returns {number} The angle in degrees, within (-180, 180].
+   */
+  getScreenAngle() {
+    return getScreenAngle(this.p1, this.p2);
+  }
+
   onConstructMouseDown(mouse, ctrl, shift) {
     if (!this.constructionPoint) {
       // Initialize the construction stage.
@@ -221,7 +264,9 @@ class ConcaveDiffractionGrating extends BaseSceneObj {
 
     if (!this.p2 && !this.p3) {
       this.p2 = mouse.getPosSnappedToGrid();
-      return;
+      return {
+        requiresObjBarUpdate: true
+      };
     }
 
     if (this.p2 && !this.p3 && !mouse.snapsOnPoint(this.p1)) {
@@ -231,7 +276,9 @@ class ConcaveDiffractionGrating extends BaseSceneObj {
         this.p2 = mouse.getPosSnappedToGrid();
       }
       this.p3 = mouse.getPosSnappedToGrid();
-      return;
+      return {
+        requiresObjBarUpdate: true
+      };
     }
   }
 
@@ -245,24 +292,31 @@ class ConcaveDiffractionGrating extends BaseSceneObj {
 
       this.p1 = ctrl ? geometry.point(2 * this.constructionPoint.x - this.p2.x, 2 * this.constructionPoint.y - this.p2.y) : this.constructionPoint;
 
-      return;
+      return {
+        requiresObjBarUpdate: true
+      };
     }
     if (this.p3) {
       this.p3 = mouse.getPosSnappedToGrid();
-      return;
+      return {
+        requiresObjBarUpdate: true
+      };
     }
   }
 
   onConstructMouseUp(mouse, ctrl, shift) {
     if (this.p2 && !this.p3 && !mouse.snapsOnPoint(this.p1)) {
       this.p3 = mouse.getPosSnappedToGrid();
-      return;
+      return {
+        requiresObjBarUpdate: true
+      };
     }
     if (this.p3 && !mouse.snapsOnPoint(this.p2)) {
       this.p3 = mouse.getPosSnappedToGrid();
       delete this.constructionPoint;
       return {
-        isDone: true
+        isDone: true,
+        requiresObjBarUpdate: true
       };
     }
   }
@@ -272,16 +326,19 @@ class ConcaveDiffractionGrating extends BaseSceneObj {
     if (mouse.isOnPoint(this.p1) && geometry.distanceSquared(mouse.pos, this.p1) <= geometry.distanceSquared(mouse.pos, this.p2) && geometry.distanceSquared(mouse.pos, this.p1) <= geometry.distanceSquared(mouse.pos, this.p3)) {
       dragContext.part = 1;
       dragContext.targetPoint = geometry.point(this.p1.x, this.p1.y);
+      dragContext.requiresObjBarUpdate = true;
       return dragContext;
     }
     if (mouse.isOnPoint(this.p2) && geometry.distanceSquared(mouse.pos, this.p2) <= geometry.distanceSquared(mouse.pos, this.p3)) {
       dragContext.part = 2;
       dragContext.targetPoint = geometry.point(this.p2.x, this.p2.y);
+      dragContext.requiresObjBarUpdate = true;
       return dragContext;
     }
     if (mouse.isOnPoint(this.p3)) {
       dragContext.part = 3;
       dragContext.targetPoint = geometry.point(this.p3.x, this.p3.y);
+      dragContext.requiresObjBarUpdate = true;
       return dragContext;
     }
 
@@ -299,6 +356,7 @@ class ConcaveDiffractionGrating extends BaseSceneObj {
         dragContext.mousePos0 = mousePos; // Mouse position when the user starts dragging
         dragContext.mousePos1 = mousePos; // Mouse position at the last moment during dragging
         dragContext.snapContext = {};
+        dragContext.requiresObjBarUpdate = true;
         return dragContext;
       }
     } else {
@@ -308,6 +366,7 @@ class ConcaveDiffractionGrating extends BaseSceneObj {
         dragContext.mousePos0 = mousePos; // Mouse position when the user starts dragging
         dragContext.mousePos1 = mousePos; // Mouse position at the last moment during dragging
         dragContext.snapContext = {};
+        dragContext.requiresObjBarUpdate = true;
         return dragContext;
       }
     }

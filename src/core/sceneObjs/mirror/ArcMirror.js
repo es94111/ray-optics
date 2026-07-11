@@ -18,6 +18,7 @@ import BaseFilter from '../BaseFilter.js';
 import i18next from 'i18next';
 import Simulator from '../../Simulator.js';
 import geometry from '../../geometry.js';
+import { formatCoordinates, parseCoordinates, getScreenAngle } from '../objBarUtils.js';
 
 /**
  * Mirror with shape of a circular arc.
@@ -162,6 +163,40 @@ class ArcMirror extends BaseFilter {
       }
     }
 
+    if (this.p1 && this.p2 && this.p3) {
+      const schema = this.constructor.getPropertySchema(this.serialize(), this.scene);
+      const p1Label = (schema.find(item => item.key === 'p1') || {}).label || i18next.t('simulator:sceneObjs.LineObjMixin.endpoint1');
+      const p2Label = (schema.find(item => item.key === 'p2') || {}).label || i18next.t('simulator:sceneObjs.LineObjMixin.endpoint2');
+
+      objBar.createTuple(p1Label, formatCoordinates(this.p1), function (obj, value) {
+        const p = parseCoordinates(value);
+        if (p) {
+          obj.p1 = p;
+        }
+      }, null, true);
+
+      objBar.createTuple(p2Label, formatCoordinates(this.p2), function (obj, value) {
+        const p = parseCoordinates(value);
+        if (p) {
+          obj.p2 = p;
+        }
+      }, null, true);
+
+      objBar.createTuple(i18next.t('simulator:sceneObjs.LineObjMixin.center'), formatCoordinates(this.getDefaultCenter()), function (obj, value) {
+        const p = parseCoordinates(value);
+        if (p) {
+          const center = obj.getDefaultCenter();
+          obj.move(p.x - center.x, p.y - center.y);
+        }
+      }, '<p>' + i18next.t('simulator:sceneObjs.LineObjMixin.centerInfo') + '</p>', true);
+
+      objBar.createNumber(i18next.t('simulator:sceneObjs.LineObjMixin.rotationAngle') + ' (°)', -180, 180, 1, this.getScreenAngle(), function (obj, value) {
+        if (isFinite(value)) {
+          obj.rotate(-(value - obj.getScreenAngle()) * Math.PI / 180);
+        }
+      }, '<p>' + i18next.t('simulator:sceneObjs.LineObjMixin.rotationAngleInfo') + '</p>', false, false, true);
+    }
+
     super.populateObjBar(objBar);
   }
 
@@ -289,6 +324,14 @@ class ArcMirror extends BaseFilter {
   
   getDefaultCenter() {
     return this.p3;
+  }
+
+  /**
+   * Get the angle of the chord from `p1` to `p2`, in degrees, as seen on the screen (counterclockwise-positive). See `objBarUtils.getScreenAngle`.
+   * @returns {number} The angle in degrees, within (-180, 180].
+   */
+  getScreenAngle() {
+    return getScreenAngle(this.p1, this.p2);
   }
 
   onConstructMouseDown(mouse, ctrl, shift) {
