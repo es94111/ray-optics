@@ -197,7 +197,11 @@
       "endpoint1": "第一端点",
       "endpoint2": "第二端点",
       "sourcePoint": "起始点",
-      "directionPoint": "方向点"
+      "directionPoint": "方向点",
+      "center": "中心",
+      "centerInfo": "修改中心坐标会平移整个元件，使其中心移动到指定位置。",
+      "rotationAngle": "角度",
+      "rotationAngleInfo": "第一点指向第二点的方向与 +x 轴（向右）的夹角，以画面上的逆时针方向为正。修改角度会使元件绕其中心旋转。"
     },
     "CircleObjMixin": {
       "center": "圆心",

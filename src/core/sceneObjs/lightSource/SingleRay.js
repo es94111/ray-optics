@@ -65,6 +65,7 @@ class SingleRay extends LineObjMixin(BaseSceneObj) {
         obj.wavelength = value;
       });
     }
+    super.populateObjBar(objBar);
   }
 
   draw(canvasRenderer, isAboveLight, isHovered) {

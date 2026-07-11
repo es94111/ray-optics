@@ -197,7 +197,11 @@
       "endpoint1": "1st endpoint",
       "endpoint2": "2nd endpoint",
       "sourcePoint": "Source point",
-      "directionPoint": "Direction point"
+      "directionPoint": "Direction point",
+      "center": "Center",
+      "centerInfo": "Editing the center coordinates moves the whole object so that its center is at the given position.",
+      "rotationAngle": "Angle",
+      "rotationAngleInfo": "The direction from the first point to the second point, measured counterclockwise from the positive x-axis (pointing right) as seen on the screen. Editing it rotates the object about its center."
     },
     "CircleObjMixin": {
       "center": "Center",

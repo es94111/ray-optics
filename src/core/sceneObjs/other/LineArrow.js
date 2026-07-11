@@ -78,6 +78,7 @@ class LineArrow extends LineObjMixin(BaseSceneObj) {
         }
       );
     }
+    super.populateObjBar(objBar);
   }
 
   draw(canvasRenderer, isAboveLight, isHovered) {

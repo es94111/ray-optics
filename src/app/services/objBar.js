@@ -143,8 +143,9 @@ class ObjBar {
    * @param {string|null} info - The HTML content for the popover info box. If null (default), no info box is created.
    * @param {boolean} hideSlider - Whether to hide the slider (that is, only show the text input). Default is false.
    * @param {boolean} highlightGroup - When true, emphasize this control group in the object bar (e.g. module parameter linked from the sidebar).
+   * @param {boolean} [updateOnChange=false] - Whether to update the entire obj bar (e.g. recompute dependent controls) when the value is committed.
    */
-  createNumber(label, min, max, step, value, func, info, hideSlider, highlightGroup) {
+  createNumber(label, min, max, step, value, func, info, hideSlider, highlightGroup, updateOnChange = false) {
     var nobr = document.createElement('span');
     nobr.className = 'obj-bar-nobr';
     if (highlightGroup) {
@@ -205,6 +206,9 @@ class ObjBar {
     objOption_range.onmouseup = function () {
       this.blur();
       self.emit('editEnd', null);
+      if (updateOnChange) {
+        self.emit('requestUpdate', null);
+      }
     };
 
     objOption_range.ontouchend = function () {
@@ -213,6 +217,9 @@ class ObjBar {
         func(obj, objOption_range.value * 1);
       });
       self.emit('editEnd', null);
+      if (updateOnChange) {
+        self.emit('requestUpdate', null);
+      }
     };
     objOption_text.onchange = function () {
       if (objOption_text.value.toLowerCase().startsWith('inf')) {
@@ -227,6 +234,9 @@ class ObjBar {
         func(obj, value);
       });
       self.emit('editEnd', null);
+      if (updateOnChange) {
+        self.emit('requestUpdate', null);
+      }
     };
     objOption_text.onkeydown = function (e) {
       e.cancelBubble = true;
@@ -244,8 +254,9 @@ class ObjBar {
    * @param {string} value - The initial value.
    * @param {objBarValueChangeCallback} func - The function to call when the value changes.
    * @param {string|null} info - The HTML content for the popover info box. If null (default), no info box is created.
+   * @param {boolean} [updateOnChange=false] - Whether to update the entire obj bar (e.g. recompute dependent controls) when the value is committed.
    */
-  createTuple(label, value, func, info) {
+  createTuple(label, value, func, info, updateOnChange = false) {
     var nobr = document.createElement('span');
     nobr.className = 'obj-bar-nobr';
 
@@ -281,6 +292,10 @@ class ObjBar {
       self.setOption(function (obj) {
         func(obj, objOption_text.value);
       });
+      if (updateOnChange) {
+        self.emit('editEnd', null);
+        self.emit('requestUpdate', null);
+      }
     };
     objOption_text.onkeydown = function (e) {
       e.cancelBubble = true;

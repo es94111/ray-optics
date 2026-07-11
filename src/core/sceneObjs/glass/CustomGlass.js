@@ -239,6 +239,7 @@ class CustomGlass extends LineObjMixin(BaseGlass) {
 
   checkMouseOver(mouse) {
     let dragContext = {};
+    dragContext.requiresObjBarUpdate = true; // The object bar shows the coordinates of the points, which change during dragging.
     if (mouse.isOnPoint(this.p1) && geometry.distanceSquared(mouse.pos, this.p1) <= geometry.distanceSquared(mouse.pos, this.p2)) {
       dragContext.part = 1;
       dragContext.targetPoint = geometry.point(this.p1.x, this.p1.y);
