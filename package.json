@@ -39,7 +39,7 @@
   },
   "optionalDependencies": {
     "@babel/preset-env": "^7.26.0",
-    "@inquirer/prompts": "^7.1.0",
+    "@inquirer/prompts": "^8.5.2",
     "bootstrap3": "npm:bootstrap@^3.3.7",
     "canvas": "^2.11.2",
     "handlebars": "^4.7.9",
