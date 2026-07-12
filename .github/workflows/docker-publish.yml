@@ -89,5 +89,5 @@ jobs:
         run: |
           npx zeabur@latest service redeploy \
             --id 6a523e43723d6cf6efaf71ea \
-            --environment-id 6a523e34104975fcb4676271 \
+            --env-id 6a523e34104975fcb4676271 \
             -y -i=false
