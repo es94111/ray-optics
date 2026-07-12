@@ -19,7 +19,7 @@ import LineObjMixin from '../LineObjMixin.js';
 import i18next from 'i18next';
 import Simulator from '../../Simulator.js';
 import geometry from '../../geometry.js';
-import { getSpotInfoPropertySchema, populateSpotInfoObjBar, resetSpotInfo, recordSpotInfoHit, drawSpotInfo } from '../spotInfoUtils.js';
+import { getSpotInfoPropertySchema, populateSpotInfoObjBar, resetSpotInfo, recordSpotInfoHit, drawSpotInfo, checkSpotInfoMouseOver, dragSpotInfoText } from '../spotInfoUtils.js';
 
 /**
  * Ideal curved mirror that follows the mirror equation exactly.
@@ -44,7 +44,8 @@ class IdealMirror extends LineObjMixin(BaseFilter) {
     invert: false,
     wavelength: Simulator.GREEN_WAVELENGTH,
     bandwidth: 10,
-    showSpotInfo: false
+    showSpotInfo: false,
+    spotInfoTextOffsets: {}
   };
 
   static getDescription(objData, scene, detailed = false) {
@@ -172,12 +173,24 @@ class IdealMirror extends LineObjMixin(BaseFilter) {
     }
   }
 
+  checkMouseOver(mouse) {
+    return checkSpotInfoMouseOver(this, mouse) || super.checkMouseOver(mouse);
+  }
+
+  onDrag(mouse, dragContext, ctrl, shift) {
+    if (dragContext.isSpotInfoDrag) {
+      dragSpotInfoText(this, mouse, dragContext);
+      return;
+    }
+    super.onDrag(mouse, dragContext, ctrl, shift);
+  }
+
   onSimulationStart() {
     resetSpotInfo(this);
   }
 
   onRayIncident(ray, rayIndex, incidentPoint) {
-    recordSpotInfoHit(this, incidentPoint, ray.brightness_s + ray.brightness_p);
+    recordSpotInfoHit(this, incidentPoint, ray);
 
     var mirror_length = geometry.segmentLength(this);
     var main_line_unitvector_x = (-this.p1.y + this.p2.y) / mirror_length;

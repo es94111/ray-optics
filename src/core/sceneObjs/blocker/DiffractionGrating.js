@@ -236,6 +236,7 @@ class DiffractionGrating extends LineObjMixin(BaseSceneObj) {
       diffracted_ray.wavelength = ray.wavelength;
       diffracted_ray.brightness_s = ray.brightness_s * intensity;
       diffracted_ray.brightness_p = ray.brightness_p * intensity;
+      diffracted_ray.diffractionOrder = m;
 
       if (this.mirrored && this.colorByOrder) {
         if (m === 0) {
