@@ -18,6 +18,7 @@ import Glass from './Glass.js';
 import BaseGlass from '../BaseGlass.js';
 import geometry from '../../geometry.js';
 import i18next from 'i18next';
+import { formatCoordinates, parseCoordinates, getScreenAngle } from '../objBarUtils.js';
 
 /**
  * Spherical lens.
@@ -81,6 +82,17 @@ class SphericalLens extends Glass {
     }
   }
 
+  /**
+   * Get the angle of the optical axis (from the front vertex midpoint to the back vertex midpoint), in degrees, as seen on the screen. See `objBarUtils.getScreenAngle`.
+   * @returns {number} The angle in degrees, within (-180, 180].
+   */
+  getScreenAngle() {
+    if (!this.path) return 0;
+    const p1 = geometry.midpoint(this.path[0], this.path[1]);
+    const p2 = geometry.midpoint(this.path[3], this.path[4]);
+    return getScreenAngle(p1, p2);
+  }
+
   populateObjBar(objBar) {
     objBar.setTitle(i18next.t('main:tools.SphericalLens.title'));
     objBar.createDropdown('', this.defBy, {
@@ -140,6 +152,22 @@ class SphericalLens extends Glass {
         var bfd = params.bfd;
         obj.createLensWithDFfdBfd(value, ffd, bfd);
       }, null, true);
+    }
+
+    if (this.path) {
+      objBar.createTuple(i18next.t('simulator:sceneObjs.LineObjMixin.center'), formatCoordinates(this.getDefaultCenter()), function (obj, value) {
+        const p = parseCoordinates(value);
+        if (p) {
+          const center = obj.getDefaultCenter();
+          obj.move(p.x - center.x, p.y - center.y);
+        }
+      }, '<p>' + i18next.t('simulator:sceneObjs.LineObjMixin.centerInfo') + '</p>', true);
+
+      objBar.createNumber(i18next.t('simulator:sceneObjs.LineObjMixin.rotationAngle') + ' (°)', -180, 180, 1, this.getScreenAngle(), function (obj, value) {
+        if (isFinite(value)) {
+          obj.rotate(-(value - obj.getScreenAngle()) * Math.PI / 180);
+        }
+      }, '<p>' + i18next.t('simulator:sceneObjs.LineObjMixin.rotationAngleInfo') + '</p>', false, false, true);
     }
 
     if (this.scene.simulateColors) {
@@ -320,10 +348,9 @@ class SphericalLens extends Glass {
     };
     dragContext = super.checkMouseOver(mouse);
     if (dragContext) {
-      if (dragContext.part != 0) {
-        dragContext.requiresObjBarUpdate = true;
-      }
-      
+      // The object bar shows the center coordinates, which change even when dragging the whole lens (part 0).
+      dragContext.requiresObjBarUpdate = true;
+
       return dragContext;
     }
   }

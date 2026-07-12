@@ -345,7 +345,13 @@
       "brightnesses": "Brightnesses",
       "brightness": "Brightness",
       "slitRatio": "Slit width / line spacing",
-      "mirrored": "Mirrored"
+      "mirrored": "Mirrored",
+      "colorByOrder": "Color by order",
+      "colorByOrderInfo": "When on and the grating is mirrored, the m=0, +1, and -1 diffracted rays are drawn in custom colors instead of the wavelength-based color, so the orders are easy to tell apart. Other orders still use the wavelength-based color. Only has effect when \"Simulate Colors\" is on.",
+      "colorByOrderInfoConcave": "When on, the m=0, +1, and -1 diffracted rays are drawn in custom colors instead of the wavelength-based color, so the orders are easy to tell apart. Other orders still use the wavelength-based color. Only has effect when \"Simulate Colors\" is on.",
+      "order0Color": "0th order color",
+      "orderPlus1Color": "+1st order color",
+      "orderMinus1Color": "-1st order color"
     },
     "Ruler": {
       "zeroPoint": "Zero point",

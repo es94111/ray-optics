@@ -17,6 +17,7 @@
 import Scene from '../../../src/core/Scene.js';
 import SphericalLens from '../../../src/core/sceneObjs/glass/SphericalLens.js';
 import { MockUser } from '../helpers/test-utils';
+import geometry from '../../../src/core/geometry.js';
 
 describe('SphericalLens', () => {
   let scene;
@@ -373,7 +374,7 @@ describe('SphericalLens', () => {
 
     const initialPath = obj.serialize().path;
     user.scale(0.5, { x: 0, y: 0 }); // Scale to 50% around origin
-    
+
     const result = obj.serialize();
     expect(result.type).toBe('SphericalLens');
     expect(result.path).toHaveLength(6);
@@ -382,5 +383,47 @@ describe('SphericalLens', () => {
       expect(point.x).toBeCloseTo(initialPath[i].x * 0.5, 2);
       expect(point.y).toBeCloseTo(initialPath[i].y * 0.5, 2);
     });
+  });
+
+  it('shows and edits the center in the object bar', async () => {
+    user.click(100, 100);
+    user.click(200, 300);
+
+    // Wait for the lens to be built
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    const centerLabel = '{{simulator:sceneObjs.LineObjMixin.center}}';
+    expect(user.getValue(centerLabel)).toBe('(150, 200)');
+
+    user.set(centerLabel, '(400, 500)');
+    const result = obj.serialize();
+    // The centroid of the path moves to the new position
+    const newCenterX = result.path.reduce((s, p) => s + p.x, 0) / result.path.length;
+    const newCenterY = result.path.reduce((s, p) => s + p.y, 0) / result.path.length;
+    expect(newCenterX).toBeCloseTo(400, 5);
+    expect(newCenterY).toBeCloseTo(500, 5);
+  });
+
+  it('shows and edits the rotation angle in the object bar', async () => {
+    user.click(100, 100);
+    user.click(200, 300);
+
+    // Wait for the lens to be built
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    const angleLabel = '{{simulator:sceneObjs.LineObjMixin.rotationAngle}}';
+    // The optical axis initially points from (100,100) to (200,300)
+    expect(user.getValue(angleLabel)).toBeCloseTo(-63.4349, 3);
+
+    user.set(angleLabel, 0);
+    expect(obj.getScreenAngle()).toBeCloseTo(0, 5);
+    expect(user.getValue(angleLabel)).toBeCloseTo(0, 5);
+
+    const result = obj.serialize();
+    const axisP1 = geometry.midpoint(result.path[0], result.path[1]);
+    const axisP2 = geometry.midpoint(result.path[3], result.path[4]);
+    // The axis is now horizontal, pointing in the positive x direction
+    expect(axisP1.y).toBeCloseTo(axisP2.y, 5);
+    expect(axisP2.x).toBeGreaterThan(axisP1.x);
   });
 });

@@ -414,6 +414,53 @@ class ObjBar {
   }
 
   /**
+   * Create a color input (a native color picker whose value is a CSS hex color string, e.g. "#ff0000") in the object bar.
+   * @param {string} label - The label for the input.
+   * @param {string} value - The initial value as a CSS hex color string.
+   * @param {objBarValueChangeCallback} func - The function to call when the value changes.
+   * @param {string|null} info - The HTML content for the popover info box. If null (default), no info box is created.
+   */
+  createColor(label, value, func, info) {
+    var nobr = document.createElement('span');
+    nobr.className = 'obj-bar-nobr';
+
+    if (info) {
+      var p_name = document.createElement('span');
+      p_name.innerHTML = label;
+      nobr.appendChild(p_name);
+      this.createInfoBox(info, nobr);
+    } else {
+      var p_name = document.createElement('span');
+      p_name.innerHTML = label + '&nbsp;';
+      nobr.appendChild(p_name);
+    }
+
+    var objOption_color = document.createElement('input');
+    objOption_color.type = 'color';
+    objOption_color.value = value;
+    objOption_color.className = 'obj-bar-editable';
+    nobr.appendChild(objOption_color);
+
+    this.elem.appendChild(nobr);
+
+    var space = document.createTextNode(' ');
+    this.elem.appendChild(space);
+
+    const self = this;
+
+    objOption_color.oninput = function () {
+      self.setOption(function (obj) {
+        func(obj, objOption_color.value);
+      });
+    };
+
+    objOption_color.onchange = function () {
+      this.blur();
+      self.emit('editEnd', null);
+    };
+  }
+
+  /**
    * Create an equation input (where the value is a LaTeX string) in the object bar.
    * @param {string} label - The label for the input.
    * @param {string} value - The initial value.

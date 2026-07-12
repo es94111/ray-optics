@@ -345,7 +345,13 @@
       "brightnesses": "亮度",
       "brightness": "亮度",
       "slitRatio": "狹縫寬度 / 線間距",
-      "mirrored": "反射"
+      "mirrored": "反射",
+      "colorByOrder": "依繞射階數上色",
+      "colorByOrderInfo": "啟用且光柵設為反射時，m=0、+1、-1 階的繞射光將以自訂顏色繪製，取代原本依波長決定的顏色，方便分辨各階光線。其餘階數仍依波長上色。僅在「模擬顏色」開啟時有效。",
+      "colorByOrderInfoConcave": "啟用時，m=0、+1、-1 階的繞射光將以自訂顏色繪製，取代原本依波長決定的顏色，方便分辨各階光線。其餘階數仍依波長上色。僅在「模擬顏色」開啟時有效。",
+      "order0Color": "0 階顏色",
+      "orderPlus1Color": "+1 階顏色",
+      "orderMinus1Color": "-1 階顏色"
     },
     "Ruler": {
       "zeroPoint": "零點",

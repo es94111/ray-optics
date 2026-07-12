@@ -129,6 +129,20 @@ export function createMockObjBar() {
       return control;
     },
 
+    createColor: function(label, initValue, callback, info) {
+      const control = {
+        label,
+        value: initValue,
+        updateOnChange: false,
+        setValue: (value) => {
+          control.value = value;
+          callback(this.targetObj, value);
+        }
+      };
+      this.controls.push(control);
+      return control;
+    },
+
     createEquation: function(label, initValue, callback, info) {
       const control = {
         label,
