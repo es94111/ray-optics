@@ -19,6 +19,7 @@ import i18next from 'i18next';
 import Simulator from '../../Simulator.js';
 import geometry from '../../geometry.js';
 import { formatCoordinates, parseCoordinates, getScreenAngle } from '../objBarUtils.js';
+import { getSpotInfoPropertySchema, populateSpotInfoObjBar, resetSpotInfo, recordSpotInfoHit, drawSpotInfo } from '../spotInfoUtils.js';
 
 /**
  * Parabolic mirror.
@@ -50,7 +51,8 @@ class ParabolicMirror extends BaseFilter {
     filter: false,
     invert: false,
     wavelength: Simulator.GREEN_WAVELENGTH,
-    bandwidth: 10
+    bandwidth: 10,
+    showSpotInfo: false
   };
 
   static getDescription(objData, scene, detailed = false) {
@@ -63,6 +65,7 @@ class ParabolicMirror extends BaseFilter {
       { key: 'p2', type: 'point', label: i18next.t('simulator:sceneObjs.LineObjMixin.endpoint2') },
       { key: 'p3', type: 'point', label: i18next.t('simulator:sceneObjs.ParabolicMirror.vertex') },
       ...super.getPropertySchema(objData, scene),
+      ...getSpotInfoPropertySchema(),
     ];
   }
 
@@ -148,6 +151,7 @@ class ParabolicMirror extends BaseFilter {
       }, '<p>' + i18next.t('simulator:sceneObjs.LineObjMixin.rotationAngleInfo') + '</p>', false, false, true);
     }
 
+    populateSpotInfoObjBar(this, objBar);
     super.populateObjBar(objBar);
   }
 
@@ -203,6 +207,8 @@ class ParabolicMirror extends BaseFilter {
       ctx.fillStyle = 'rgb(255,0,0)';
       ctx.fillRect(this.p1.x - 1.5 * ls, this.p1.y - 1.5 * ls, 3 * ls, 3 * ls);
     }
+
+    drawSpotInfo(this, canvasRenderer, isAboveLight, isHovered);
   }
 
   move(diffX, diffY) {
@@ -594,7 +600,13 @@ class ParabolicMirror extends BaseFilter {
     ).point;
   }
 
+  onSimulationStart() {
+    resetSpotInfo(this);
+  }
+
   onRayIncident(ray, rayIndex, incidentPoint) {
+    recordSpotInfoHit(this, incidentPoint, ray.brightness_s + ray.brightness_p);
+
     // Handle degenerate case (linear mirror)
     if (this.isDegenerate()) {
       const dir = [(this.p2.x - this.p1.x), (this.p2.y - this.p1.y)];

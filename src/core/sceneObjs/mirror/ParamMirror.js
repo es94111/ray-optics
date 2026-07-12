@@ -21,6 +21,7 @@ import Simulator from '../../Simulator.js';
 import geometry from '../../geometry.js';
 import { equationValueForListDisplay } from '../../propertyUtils/equationConversion.js';
 import escapeHtml from 'escape-html';
+import { getSpotInfoPropertySchema, populateSpotInfoObjBar, resetSpotInfo, recordSpotInfoHit, drawSpotInfo } from '../spotInfoUtils.js';
 
 /**
  * Mirror with shape defined by parametric curve pieces.
@@ -56,7 +57,8 @@ class ParamMirror extends ParamCurveObjMixin(BaseFilter) {
     filter: false,
     invert: false,
     wavelength: Simulator.GREEN_WAVELENGTH,
-    bandwidth: 10
+    bandwidth: 10,
+    showSpotInfo: false
   };
 
   static getDescription(objData, scene, detailed = false) {
@@ -73,17 +75,20 @@ class ParamMirror extends ParamCurveObjMixin(BaseFilter) {
   static getPropertySchema(objData, scene) {
     return [
       ...super.getPropertySchema(objData, scene),
+      ...getSpotInfoPropertySchema(),
     ];
   }
 
   populateObjBar(objBar) {
     objBar.setTitle(i18next.t('main:tools.categories.mirror'));
     objBar.createInfoBox('<ul><li>' + i18next.t('simulator:sceneObjs.common.eqnInfo.constants') + '<br><code>pi e</code></li><li>' + i18next.t('simulator:sceneObjs.common.eqnInfo.operators') + '<br><code>+ - * / ^</code></li><li>' + i18next.t('simulator:sceneObjs.common.eqnInfo.functions') + '<br><code>sqrt sin cos tan sec csc cot sinh cosh tanh log</code> (' + i18next.t('simulator:sceneObjs.common.eqnInfo.naturalLog') + ') <code>exp arcsin arccos arctan arcsinh arccosh arctanh floor round ceil trunc sgn max min abs</code></li><li>' + i18next.t('simulator:sceneObjs.common.eqnInfo.module') + '</li></ul>');
-    
-    
+
+
     // Add parametric curve controls
     this.populateObjBarShape(objBar);
-    
+
+    populateSpotInfoObjBar(this, objBar);
+
     // Add filter controls from BaseFilter
     super.populateObjBar(objBar);
   }
@@ -135,6 +140,8 @@ class ParamMirror extends ParamCurveObjMixin(BaseFilter) {
     
     this.drawPath(canvasRenderer);
     ctx.stroke();
+
+    drawSpotInfo(this, canvasRenderer, isAboveLight, isHovered);
   }
 
   checkRayIntersects(ray) {
@@ -172,7 +179,13 @@ class ParamMirror extends ParamCurveObjMixin(BaseFilter) {
     return nearestIntersection ? nearestIntersection.s_point : null;
   }
 
+  onSimulationStart() {
+    resetSpotInfo(this);
+  }
+
   onRayIncident(ray, rayIndex, incidentPoint) {
+    recordSpotInfoHit(this, incidentPoint, ray.brightness_s + ray.brightness_p);
+
     // Get all intersections to find the one at the incident point
     const intersections = this.getRayIntersections(ray);
     

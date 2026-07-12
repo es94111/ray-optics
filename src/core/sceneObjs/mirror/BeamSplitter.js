@@ -19,6 +19,7 @@ import LineObjMixin from '../LineObjMixin.js';
 import i18next from 'i18next';
 import Simulator from '../../Simulator.js';
 import geometry from '../../geometry.js';
+import { getSpotInfoPropertySchema, populateSpotInfoObjBar, resetSpotInfo, recordSpotInfoHit, drawSpotInfo } from '../spotInfoUtils.js';
 
 /**
  * Beam splitter.
@@ -45,7 +46,8 @@ class BeamSplitter extends LineObjMixin(BaseFilter) {
     filter: false,
     invert: false,
     wavelength: Simulator.GREEN_WAVELENGTH,
-    bandwidth: 10
+    bandwidth: 10,
+    showSpotInfo: false
   };
 
   static getDescription(objData, scene, detailed = false) {
@@ -56,6 +58,7 @@ class BeamSplitter extends LineObjMixin(BaseFilter) {
     return [
       ...super.getPropertySchema(objData, scene),
       { key: 'transRatio', type: 'number', label: i18next.t('simulator:sceneObjs.BeamSplitter.transRatio') },
+      ...getSpotInfoPropertySchema(),
     ];
   }
 
@@ -65,6 +68,7 @@ class BeamSplitter extends LineObjMixin(BaseFilter) {
       obj.transRatio = value;
     });
 
+    populateSpotInfoObjBar(this, objBar);
     super.populateObjBar(objBar);
   }
 
@@ -95,6 +99,8 @@ class BeamSplitter extends LineObjMixin(BaseFilter) {
       ctx.stroke();
     }
     ctx.setLineDash([]);
+
+    drawSpotInfo(this, canvasRenderer, isAboveLight, isHovered);
   }
 
   checkRayIntersects(ray) {
@@ -105,7 +111,13 @@ class BeamSplitter extends LineObjMixin(BaseFilter) {
     }
   }
 
+  onSimulationStart() {
+    resetSpotInfo(this);
+  }
+
   onRayIncident(ray, rayIndex, incidentPoint) {
+    recordSpotInfoHit(this, incidentPoint, ray.brightness_s + ray.brightness_p);
+
     var rx = ray.p1.x - incidentPoint.x;
     var ry = ray.p1.y - incidentPoint.y;
 

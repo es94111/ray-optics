@@ -191,7 +191,9 @@
       },
       "pointN": "点 {{i}}",
       "imageDetectionWarning": "本元件不支持像的侦测。",
-      "nonSimulateColorsWarning": "本元件只在「模拟色彩」模式下运作。"
+      "nonSimulateColorsWarning": "本元件只在「模拟色彩」模式下运作。",
+      "showSpotInfo": "显示光斑信息",
+      "showSpotInfoInfo": "开启后，会依本次模拟结果显示光线打在此表面上各入射点的加权平均位置（依亮度加权），以及这些入射点外接矩形的对角线长度（作为光斑大小的近似值）。"
     },
     "LineObjMixin": {
       "endpoint1": "第一端点",
