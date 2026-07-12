@@ -32,6 +32,7 @@ import i18next from 'i18next';
  * @property {boolean} gap - Whether the ray is the first ray in a bunch of "continuous" rays. This is for the detection of images to work correctly. The intersection of two rays is considered as a candidate of an image only if the second ray has `gap === false`.
  * @property {boolean} isNew - Whether the ray is just emitted by a source. This is to avoid drawing trivial initial extensions in the "Extended rays" mode.
  * @property {string} [colorOverride] - A CSS hex color (e.g. "#ff0000") used to draw this ray instead of the wavelength-based color, when "Simulate Colors" is on. Used e.g. by diffraction gratings to color rays by diffraction order.
+ * @property {number} [diffractionOrder] - The diffraction order m (0, +1, -1, +2, ...) of this ray, set by `DiffractionGrating` and `ConcaveDiffractionGrating` on the rays they diffract. Used to group the "show spot info" readout of a downstream mirror by order.
  */
 
 /**

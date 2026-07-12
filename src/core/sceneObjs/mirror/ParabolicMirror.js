@@ -19,7 +19,7 @@ import i18next from 'i18next';
 import Simulator from '../../Simulator.js';
 import geometry from '../../geometry.js';
 import { formatCoordinates, parseCoordinates, getScreenAngle } from '../objBarUtils.js';
-import { getSpotInfoPropertySchema, populateSpotInfoObjBar, resetSpotInfo, recordSpotInfoHit, drawSpotInfo } from '../spotInfoUtils.js';
+import { getSpotInfoPropertySchema, populateSpotInfoObjBar, resetSpotInfo, recordSpotInfoHit, drawSpotInfo, checkSpotInfoMouseOver, dragSpotInfoText } from '../spotInfoUtils.js';
 
 /**
  * Parabolic mirror.
@@ -52,7 +52,8 @@ class ParabolicMirror extends BaseFilter {
     invert: false,
     wavelength: Simulator.GREEN_WAVELENGTH,
     bandwidth: 10,
-    showSpotInfo: false
+    showSpotInfo: false,
+    spotInfoTextOffsets: {}
   };
 
   static getDescription(objData, scene, detailed = false) {
@@ -357,6 +358,9 @@ class ParabolicMirror extends BaseFilter {
   }
 
   checkMouseOver(mouse) {
+    const spotInfoDrag = checkSpotInfoMouseOver(this, mouse);
+    if (spotInfoDrag) return spotInfoDrag;
+
     let dragContext = {};
     if (mouse.isOnPoint(this.p1) && geometry.distanceSquared(mouse.pos, this.p1) <= geometry.distanceSquared(mouse.pos, this.p2) && geometry.distanceSquared(mouse.pos, this.p1) <= geometry.distanceSquared(mouse.pos, this.p3)) {
       dragContext.part = 1;
@@ -395,6 +399,11 @@ class ParabolicMirror extends BaseFilter {
   }
 
   onDrag(mouse, dragContext, ctrl, shift) {
+    if (dragContext.isSpotInfoDrag) {
+      dragSpotInfoText(this, mouse, dragContext);
+      return;
+    }
+
     var basePoint;
     if (dragContext.part == 1) {
       // Dragging the first endpoint
@@ -605,7 +614,7 @@ class ParabolicMirror extends BaseFilter {
   }
 
   onRayIncident(ray, rayIndex, incidentPoint) {
-    recordSpotInfoHit(this, incidentPoint, ray.brightness_s + ray.brightness_p);
+    recordSpotInfoHit(this, incidentPoint, ray);
 
     // Handle degenerate case (linear mirror)
     if (this.isDegenerate()) {

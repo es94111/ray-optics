@@ -19,7 +19,7 @@ import Simulator from '../../Simulator.js';
 import geometry from '../../geometry.js';
 import BaseSceneObj from '../BaseSceneObj.js';
 import { formatCoordinates, parseCoordinates, getScreenAngle } from '../objBarUtils.js';
-import { getSpotInfoPropertySchema, populateSpotInfoObjBar, resetSpotInfo, recordSpotInfoHit, drawSpotInfo } from '../spotInfoUtils.js';
+import { getSpotInfoPropertySchema, populateSpotInfoObjBar, resetSpotInfo, recordSpotInfoHit, drawSpotInfo, checkSpotInfoMouseOver, dragSpotInfoText } from '../spotInfoUtils.js';
 
 /**
  * Mirror with shape of a circular arc. Diffracts light. 
@@ -55,7 +55,8 @@ class ConcaveDiffractionGrating extends BaseSceneObj {
     order0Color: '#ffffff',
     orderPlus1Color: '#ff0000',
     orderMinus1Color: '#0000ff',
-    showSpotInfo: false
+    showSpotInfo: false,
+    spotInfoTextOffsets: {}
   };
 
   static getDescription(objData, scene, detailed = false) {
@@ -363,6 +364,9 @@ class ConcaveDiffractionGrating extends BaseSceneObj {
   }
 
   checkMouseOver(mouse) {
+    const spotInfoDrag = checkSpotInfoMouseOver(this, mouse);
+    if (spotInfoDrag) return spotInfoDrag;
+
     let dragContext = {};
     if (mouse.isOnPoint(this.p1) && geometry.distanceSquared(mouse.pos, this.p1) <= geometry.distanceSquared(mouse.pos, this.p2) && geometry.distanceSquared(mouse.pos, this.p1) <= geometry.distanceSquared(mouse.pos, this.p3)) {
       dragContext.part = 1;
@@ -414,6 +418,11 @@ class ConcaveDiffractionGrating extends BaseSceneObj {
   }
 
   onDrag(mouse, dragContext, ctrl, shift) {
+    if (dragContext.isSpotInfoDrag) {
+      dragSpotInfoText(this, mouse, dragContext);
+      return;
+    }
+
     var basePoint;
     if (dragContext.part == 1) {
       // Dragging the first endpoint
@@ -498,7 +507,7 @@ class ConcaveDiffractionGrating extends BaseSceneObj {
   }
 
   onRayIncident(ray, rayIndex, incidentPoint) {
-    recordSpotInfoHit(this, incidentPoint, ray.brightness_s + ray.brightness_p);
+    recordSpotInfoHit(this, incidentPoint, ray);
 
     const mm_in_nm = 1 / 1e6;
     let truncation = 0;
@@ -579,6 +588,7 @@ class ConcaveDiffractionGrating extends BaseSceneObj {
       diffracted_ray.wavelength = ray.wavelength;
       diffracted_ray.brightness_s = ray.brightness_s * intensity;
       diffracted_ray.brightness_p = ray.brightness_p * intensity;
+      diffracted_ray.diffractionOrder = m;
 
       if (this.colorByOrder) {
         if (m === 0) {

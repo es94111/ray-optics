@@ -19,7 +19,7 @@ import LineObjMixin from '../LineObjMixin.js';
 import i18next from 'i18next';
 import Simulator from '../../Simulator.js';
 import geometry from '../../geometry.js';
-import { getSpotInfoPropertySchema, populateSpotInfoObjBar, resetSpotInfo, recordSpotInfoHit, drawSpotInfo } from '../spotInfoUtils.js';
+import { getSpotInfoPropertySchema, populateSpotInfoObjBar, resetSpotInfo, recordSpotInfoHit, drawSpotInfo, checkSpotInfoMouseOver, dragSpotInfoText } from '../spotInfoUtils.js';
 
 /**
  * Mirror with shape of a line segment.
@@ -46,7 +46,8 @@ class Mirror extends LineObjMixin(BaseFilter) {
     invert: false,
     wavelength: Simulator.GREEN_WAVELENGTH,
     bandwidth: 10,
-    showSpotInfo: false
+    showSpotInfo: false,
+    spotInfoTextOffsets: {}
   };
 
   static getDescription(objData, scene, detailed = false) {
@@ -95,12 +96,24 @@ class Mirror extends LineObjMixin(BaseFilter) {
     }
   }
 
+  checkMouseOver(mouse) {
+    return checkSpotInfoMouseOver(this, mouse) || super.checkMouseOver(mouse);
+  }
+
+  onDrag(mouse, dragContext, ctrl, shift) {
+    if (dragContext.isSpotInfoDrag) {
+      dragSpotInfoText(this, mouse, dragContext);
+      return;
+    }
+    super.onDrag(mouse, dragContext, ctrl, shift);
+  }
+
   onSimulationStart() {
     resetSpotInfo(this);
   }
 
   onRayIncident(ray, rayIndex, incidentPoint) {
-    recordSpotInfoHit(this, incidentPoint, ray.brightness_s + ray.brightness_p);
+    recordSpotInfoHit(this, incidentPoint, ray);
 
     var rx = ray.p1.x - incidentPoint.x;
     var ry = ray.p1.y - incidentPoint.y;

@@ -25,7 +25,7 @@ import escapeHtml from 'escape-html';
 import { Bezier } from 'bezier-js';
 import * as math from 'mathjs';
 import { curveTypePropertyInfoHtml } from '../ParamCurveObjMixin.js';
-import { getSpotInfoPropertySchema, populateSpotInfoObjBar, resetSpotInfo, recordSpotInfoHit, drawSpotInfo } from '../spotInfoUtils.js';
+import { getSpotInfoPropertySchema, populateSpotInfoObjBar, resetSpotInfo, recordSpotInfoHit, drawSpotInfo, checkSpotInfoMouseOver, dragSpotInfoText } from '../spotInfoUtils.js';
 
 function compileEquationDerivative(eqnLatex) {
   const p = latexToMathJS(eqnLatex);
@@ -67,7 +67,8 @@ class CustomMirror extends LineObjMixin(BaseFilter) {
     invert: false,
     wavelength: Simulator.GREEN_WAVELENGTH,
     bandwidth: 10,
-    showSpotInfo: false
+    showSpotInfo: false,
+    spotInfoTextOffsets: {}
   };
 
   static getDescription(objData, scene, detailed = false) {
@@ -247,6 +248,9 @@ class CustomMirror extends LineObjMixin(BaseFilter) {
   }
 
   checkMouseOver(mouse) {
+    const spotInfoDrag = checkSpotInfoMouseOver(this, mouse);
+    if (spotInfoDrag) return spotInfoDrag;
+
     let dragContext = {};
     dragContext.requiresObjBarUpdate = true; // The object bar shows the coordinates of the points, which change during dragging.
     if (mouse.isOnPoint(this.p1) && geometry.distanceSquared(mouse.pos, this.p1) <= geometry.distanceSquared(mouse.pos, this.p2)) {
@@ -299,6 +303,10 @@ class CustomMirror extends LineObjMixin(BaseFilter) {
   }
 
   onDrag(mouse, dragContext, ctrl, shift) {
+    if (dragContext.isSpotInfoDrag) {
+      dragSpotInfoText(this, mouse, dragContext);
+      return;
+    }
     super.onDrag(mouse, dragContext, ctrl, shift);
     // Invalidate points after any dragging operation
     delete this.tmp_points;
@@ -371,7 +379,7 @@ class CustomMirror extends LineObjMixin(BaseFilter) {
   }
 
   onRayIncident(ray, rayIndex, incidentPoint) {
-    recordSpotInfoHit(this, incidentPoint, ray.brightness_s + ray.brightness_p);
+    recordSpotInfoHit(this, incidentPoint, ray);
 
     if (this.curveType === 'cubicBezier') {
       return this.onRayIncidentBezier(ray, rayIndex, incidentPoint);
