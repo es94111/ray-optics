@@ -19,6 +19,7 @@ import Simulator from '../../Simulator.js';
 import geometry from '../../geometry.js';
 import BaseSceneObj from '../BaseSceneObj.js';
 import { formatCoordinates, parseCoordinates, getScreenAngle } from '../objBarUtils.js';
+import { getSpotInfoPropertySchema, populateSpotInfoObjBar, resetSpotInfo, recordSpotInfoHit, drawSpotInfo } from '../spotInfoUtils.js';
 
 /**
  * Mirror with shape of a circular arc. Diffracts light. 
@@ -53,7 +54,8 @@ class ConcaveDiffractionGrating extends BaseSceneObj {
     colorByOrder: false,
     order0Color: '#ffffff',
     orderPlus1Color: '#ff0000',
-    orderMinus1Color: '#0000ff'
+    orderMinus1Color: '#0000ff',
+    showSpotInfo: false
   };
 
   static getDescription(objData, scene, detailed = false) {
@@ -82,6 +84,7 @@ class ConcaveDiffractionGrating extends BaseSceneObj {
         visibleIf: (objData) => !!objData.colorByOrder },
       { key: 'orderMinus1Color', type: 'text', label: i18next.t('simulator:sceneObjs.DiffractionGrating.orderMinus1Color'),
         visibleIf: (objData) => !!objData.colorByOrder },
+      ...getSpotInfoPropertySchema(),
     ];
   }
 
@@ -156,6 +159,8 @@ class ConcaveDiffractionGrating extends BaseSceneObj {
         }
       }, '<p>' + i18next.t('simulator:sceneObjs.LineObjMixin.rotationAngleInfo') + '</p>', false, false, true);
     }
+
+    populateSpotInfoObjBar(this, objBar);
   }
 
   draw(canvasRenderer, isAboveLight, isHovered) {
@@ -208,6 +213,8 @@ class ConcaveDiffractionGrating extends BaseSceneObj {
       ctx.fillStyle = 'rgb(255,0,0)';
       ctx.fillRect(this.p1.x - 1.5 * ls, this.p1.y - 1.5 * ls, 3 * ls, 3 * ls);
     }
+
+    drawSpotInfo(this, canvasRenderer, isAboveLight, isHovered);
   }
 
   move(diffX, diffY) {
@@ -453,6 +460,8 @@ class ConcaveDiffractionGrating extends BaseSceneObj {
   }
 
   onSimulationStart() {
+    resetSpotInfo(this);
+
     this.warning = null;
     if (this.scene.mode == 'images' || this.scene.mode == 'observer') {
       this.warning = (this.warning || "") + i18next.t('simulator:sceneObjs.common.imageDetectionWarning');
@@ -489,6 +498,8 @@ class ConcaveDiffractionGrating extends BaseSceneObj {
   }
 
   onRayIncident(ray, rayIndex, incidentPoint) {
+    recordSpotInfoHit(this, incidentPoint, ray.brightness_s + ray.brightness_p);
+
     const mm_in_nm = 1 / 1e6;
     let truncation = 0;
   

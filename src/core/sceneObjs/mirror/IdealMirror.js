@@ -19,6 +19,7 @@ import LineObjMixin from '../LineObjMixin.js';
 import i18next from 'i18next';
 import Simulator from '../../Simulator.js';
 import geometry from '../../geometry.js';
+import { getSpotInfoPropertySchema, populateSpotInfoObjBar, resetSpotInfo, recordSpotInfoHit, drawSpotInfo } from '../spotInfoUtils.js';
 
 /**
  * Ideal curved mirror that follows the mirror equation exactly.
@@ -42,7 +43,8 @@ class IdealMirror extends LineObjMixin(BaseFilter) {
     filter: false,
     invert: false,
     wavelength: Simulator.GREEN_WAVELENGTH,
-    bandwidth: 10
+    bandwidth: 10,
+    showSpotInfo: false
   };
 
   static getDescription(objData, scene, detailed = false) {
@@ -53,6 +55,7 @@ class IdealMirror extends LineObjMixin(BaseFilter) {
     return [
       ...super.getPropertySchema(objData, scene),
       { key: 'focalLength', type: 'number', label: i18next.t('simulator:sceneObjs.common.focalLength') },
+      ...getSpotInfoPropertySchema(),
     ];
   }
 
@@ -71,6 +74,7 @@ class IdealMirror extends LineObjMixin(BaseFilter) {
       }, null, true);
     }
 
+    populateSpotInfoObjBar(this, objBar);
     super.populateObjBar(objBar);
   }
 
@@ -150,6 +154,8 @@ class IdealMirror extends LineObjMixin(BaseFilter) {
       ctx.lineTo(this.p2.x + par_x * arrow_size_par - per_x * arrow_size_per, this.p2.y + par_y * arrow_size_par - per_y * arrow_size_per);
       ctx.fill();
     }
+
+    drawSpotInfo(this, canvasRenderer, isAboveLight, isHovered);
   }
 
   scale(scale, center) {
@@ -166,7 +172,13 @@ class IdealMirror extends LineObjMixin(BaseFilter) {
     }
   }
 
+  onSimulationStart() {
+    resetSpotInfo(this);
+  }
+
   onRayIncident(ray, rayIndex, incidentPoint) {
+    recordSpotInfoHit(this, incidentPoint, ray.brightness_s + ray.brightness_p);
+
     var mirror_length = geometry.segmentLength(this);
     var main_line_unitvector_x = (-this.p1.y + this.p2.y) / mirror_length;
     var main_line_unitvector_y = (this.p1.x - this.p2.x) / mirror_length;

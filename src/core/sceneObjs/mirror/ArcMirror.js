@@ -19,6 +19,7 @@ import i18next from 'i18next';
 import Simulator from '../../Simulator.js';
 import geometry from '../../geometry.js';
 import { formatCoordinates, parseCoordinates, getScreenAngle } from '../objBarUtils.js';
+import { getSpotInfoPropertySchema, populateSpotInfoObjBar, resetSpotInfo, recordSpotInfoHit, drawSpotInfo } from '../spotInfoUtils.js';
 
 /**
  * Mirror with shape of a circular arc.
@@ -46,7 +47,8 @@ class ArcMirror extends BaseFilter {
     filter: false,
     invert: false,
     wavelength: Simulator.GREEN_WAVELENGTH,
-    bandwidth: 10
+    bandwidth: 10,
+    showSpotInfo: false
   };
 
   static getDescription(objData, scene, detailed = false) {
@@ -59,6 +61,7 @@ class ArcMirror extends BaseFilter {
       { key: 'p2', type: 'point', label: i18next.t('simulator:sceneObjs.LineObjMixin.endpoint2') },
       { key: 'p3', type: 'point', label: i18next.t('simulator:sceneObjs.ArcMirror.pointOnArc') },
       ...super.getPropertySchema(objData, scene),
+      ...getSpotInfoPropertySchema(),
     ];
   }
 
@@ -197,6 +200,7 @@ class ArcMirror extends BaseFilter {
       }, '<p>' + i18next.t('simulator:sceneObjs.LineObjMixin.rotationAngleInfo') + '</p>', false, false, true);
     }
 
+    populateSpotInfoObjBar(this, objBar);
     super.populateObjBar(objBar);
   }
 
@@ -254,6 +258,8 @@ class ArcMirror extends BaseFilter {
       ctx.fillStyle = 'rgb(255,0,0)';
       ctx.fillRect(this.p1.x - 1.5 * ls, this.p1.y - 1.5 * ls, 3 * ls, 3 * ls);
     }
+
+    drawSpotInfo(this, canvasRenderer, isAboveLight, isHovered);
   }
 
 
@@ -526,7 +532,13 @@ class ArcMirror extends BaseFilter {
     }
   }
 
+  onSimulationStart() {
+    resetSpotInfo(this);
+  }
+
   onRayIncident(ray, rayIndex, incidentPoint) {
+    recordSpotInfoHit(this, incidentPoint, ray.brightness_s + ray.brightness_p);
+
     var rx = ray.p1.x - incidentPoint.x;
     var ry = ray.p1.y - incidentPoint.y;
     var mx = this.p2.x - this.p1.x;

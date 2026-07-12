@@ -19,6 +19,7 @@ import LineObjMixin from '../LineObjMixin.js';
 import i18next from 'i18next';
 import Simulator from '../../Simulator.js';
 import geometry from '../../geometry.js';
+import { getSpotInfoPropertySchema, populateSpotInfoObjBar, resetSpotInfo, recordSpotInfoHit, drawSpotInfo } from '../spotInfoUtils.js';
 
 /**
  * Mirror with shape of a line segment.
@@ -44,7 +45,8 @@ class Mirror extends LineObjMixin(BaseFilter) {
     filter: false,
     invert: false,
     wavelength: Simulator.GREEN_WAVELENGTH,
-    bandwidth: 10
+    bandwidth: 10,
+    showSpotInfo: false
   };
 
   static getDescription(objData, scene, detailed = false) {
@@ -54,11 +56,13 @@ class Mirror extends LineObjMixin(BaseFilter) {
   static getPropertySchema(objData, scene) {
     return [
       ...super.getPropertySchema(objData, scene),
+      ...getSpotInfoPropertySchema(),
     ];
   }
 
   populateObjBar(objBar) {
     objBar.setTitle(i18next.t('main:meta.parentheses', { main: i18next.t('main:tools.categories.mirror'), sub: i18next.t('main:tools.Mirror.title') }));
+    populateSpotInfoObjBar(this, objBar);
     super.populateObjBar(objBar);
   }
 
@@ -79,6 +83,8 @@ class Mirror extends LineObjMixin(BaseFilter) {
     ctx.moveTo(this.p1.x, this.p1.y);
     ctx.lineTo(this.p2.x, this.p2.y);
     ctx.stroke();
+
+    drawSpotInfo(this, canvasRenderer, isAboveLight, isHovered);
   }
 
   checkRayIntersects(ray) {
@@ -89,7 +95,13 @@ class Mirror extends LineObjMixin(BaseFilter) {
     }
   }
 
+  onSimulationStart() {
+    resetSpotInfo(this);
+  }
+
   onRayIncident(ray, rayIndex, incidentPoint) {
+    recordSpotInfoHit(this, incidentPoint, ray.brightness_s + ray.brightness_p);
+
     var rx = ray.p1.x - incidentPoint.x;
     var ry = ray.p1.y - incidentPoint.y;
     var mx = this.p2.x - this.p1.x;

@@ -25,6 +25,7 @@ import escapeHtml from 'escape-html';
 import { Bezier } from 'bezier-js';
 import * as math from 'mathjs';
 import { curveTypePropertyInfoHtml } from '../ParamCurveObjMixin.js';
+import { getSpotInfoPropertySchema, populateSpotInfoObjBar, resetSpotInfo, recordSpotInfoHit, drawSpotInfo } from '../spotInfoUtils.js';
 
 function compileEquationDerivative(eqnLatex) {
   const p = latexToMathJS(eqnLatex);
@@ -65,7 +66,8 @@ class CustomMirror extends LineObjMixin(BaseFilter) {
     filter: false,
     invert: false,
     wavelength: Simulator.GREEN_WAVELENGTH,
-    bandwidth: 10
+    bandwidth: 10,
+    showSpotInfo: false
   };
 
   static getDescription(objData, scene, detailed = false) {
@@ -107,6 +109,7 @@ class CustomMirror extends LineObjMixin(BaseFilter) {
         label: i18next.t('simulator:sceneObjs.common.curveStepSize') + ' (px)' + ' <sup class="beta-label-sup">Beta</sup>',
         info: '<p>' + i18next.t('simulator:sceneObjs.common.eqnInfo.curveStepSize') + '</p>',
       },
+      ...getSpotInfoPropertySchema(),
     ];
   }
 
@@ -139,6 +142,7 @@ class CustomMirror extends LineObjMixin(BaseFilter) {
       }, '<p>' + i18next.t('simulator:sceneObjs.common.eqnInfo.curveStepSize') + '</p>', true);
     }
 
+    populateSpotInfoObjBar(this, objBar);
     super.populateObjBar(objBar);
   }
 
@@ -192,6 +196,8 @@ class CustomMirror extends LineObjMixin(BaseFilter) {
       ctx.fillRect(this.p1.x - 1.5 * ls, this.p1.y - 1.5 * ls, 3 * ls, 3 * ls);
       ctx.fillRect(this.p2.x - 1.5 * ls, this.p2.y - 1.5 * ls, 3 * ls, 3 * ls);
     }
+
+    drawSpotInfo(this, canvasRenderer, isAboveLight, isHovered);
   }
 
   move(diffX, diffY) {
@@ -360,7 +366,13 @@ class CustomMirror extends LineObjMixin(BaseFilter) {
     if (incidentPoint) return incidentPoint;
   }
 
+  onSimulationStart() {
+    resetSpotInfo(this);
+  }
+
   onRayIncident(ray, rayIndex, incidentPoint) {
+    recordSpotInfoHit(this, incidentPoint, ray.brightness_s + ray.brightness_p);
+
     if (this.curveType === 'cubicBezier') {
       return this.onRayIncidentBezier(ray, rayIndex, incidentPoint);
     }

@@ -19,6 +19,7 @@ import CurveObjMixin from '../CurveObjMixin.js';
 import i18next from 'i18next';
 import Simulator from '../../Simulator.js';
 import geometry from '../../geometry.js';
+import { getSpotInfoPropertySchema, populateSpotInfoObjBar, resetSpotInfo, recordSpotInfoHit, drawSpotInfo } from '../spotInfoUtils.js';
 
 /**
  * Mirror whose shape is a sequence of cubic Bezier curves. Can be drawn as an
@@ -51,15 +52,24 @@ class CurveMirror extends CurveObjMixin(BaseFilter) {
     filter: false,
     invert: false,
     wavelength: Simulator.GREEN_WAVELENGTH,
-    bandwidth: 10
+    bandwidth: 10,
+    showSpotInfo: false
   }
 
   static getDescription(objData, scene, detailed = false) {
     return i18next.t('main:meta.parentheses', { main: i18next.t('main:tools.categories.mirror'), sub: i18next.t('main:tools.CurveMirror.title') });
   }
 
+  static getPropertySchema(objData, scene) {
+    return [
+      ...super.getPropertySchema(objData, scene),
+      ...getSpotInfoPropertySchema(),
+    ];
+  }
+
   populateObjBar(objBar) {
     objBar.setTitle(i18next.t('main:meta.parentheses', { main: i18next.t('main:tools.categories.mirror'), sub: i18next.t('main:tools.CurveMirror.title') }));
+    populateSpotInfoObjBar(this, objBar);
     super.populateObjBar(objBar);
   }
 
@@ -93,6 +103,8 @@ class CurveMirror extends CurveObjMixin(BaseFilter) {
       this.drawControlHandles(canvasRenderer);
     }
     ctx.lineWidth = 1;
+
+    drawSpotInfo(this, canvasRenderer, isAboveLight, isHovered);
   }
 
   checkRayIntersects(ray) {
@@ -112,7 +124,13 @@ class CurveMirror extends CurveObjMixin(BaseFilter) {
     }
   }
 
+  onSimulationStart() {
+    resetSpotInfo(this);
+  }
+
   onRayIncident(ray, rayIndex, incidentPoint) {
+    recordSpotInfoHit(this, incidentPoint, ray.brightness_s + ray.brightness_p);
+
     // Compute the reflection direction using the surface normal at the
     // intersection point. BezierJS returns the normal on a fixed side, so we
     // flip it to point against the incoming ray direction.
