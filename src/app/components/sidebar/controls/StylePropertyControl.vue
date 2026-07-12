@@ -175,19 +175,22 @@ export default {
         : createDefaultStyle()
 
       const parts = subKey.split('.')
-      for (const part of parts) {
-        if (part === '__proto__' || part === 'constructor' || part === 'prototype') {
-          return
-        }
-      }
       let target = style
       for (let i = 0; i < parts.length - 1; i++) {
-        if (!target[parts[i]] || typeof target[parts[i]] !== 'object') {
-          target[parts[i]] = {}
+        const key = parts[i]
+        if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+          return
         }
-        target = target[parts[i]]
+        if (!target[key] || typeof target[key] !== 'object') {
+          target[key] = {}
+        }
+        target = target[key]
       }
-      target[parts[parts.length - 1]] = value
+      const lastKey = parts[parts.length - 1]
+      if (lastKey === '__proto__' || lastKey === 'constructor' || lastKey === 'prototype') {
+        return
+      }
+      target[lastKey] = value
 
       emit('update:value', style)
     }
