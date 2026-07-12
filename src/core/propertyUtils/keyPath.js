@@ -29,18 +29,6 @@ export function getForIfDefault(key) {
   return key in FOR_IF_DEFAULTS ? FOR_IF_DEFAULTS[key] : undefined;
 }
 
-/**
- * Check whether a key path segment could reach the Object prototype chain
- * (e.g. via `__proto__` or `constructor.prototype`), which would let a
- * crafted key path pollute `Object.prototype` through the recursive
- * assignment in {@link setByKeyPath}.
- * @param {string} key
- * @returns {boolean}
- */
-export function isUnsafeKey(key) {
-  return key === '__proto__' || key === 'constructor' || key === 'prototype';
-}
-
 export function getByKeyPath(obj, path, defaults) {
   if (path === '') {
     return obj;
@@ -161,7 +149,7 @@ export function setByKeyPath(obj, path, value, defaults) {
     const seg = segments[i];
     const num = Number(seg);
     const key = Number.isNaN(num) ? seg : num;
-    if (typeof key === 'string' && isUnsafeKey(key)) {
+    if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
       return;
     }
     const nextKey = segments[i + 1];
@@ -189,7 +177,7 @@ export function setByKeyPath(obj, path, value, defaults) {
   const lastSeg = segments[segments.length - 1];
   const lastNum = Number(lastSeg);
   const lastKey = Number.isNaN(lastNum) ? lastSeg : lastNum;
-  if (typeof lastKey === 'string' && isUnsafeKey(lastKey)) {
+  if (lastKey === '__proto__' || lastKey === 'constructor' || lastKey === 'prototype') {
     return;
   }
 

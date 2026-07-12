@@ -79,16 +79,43 @@
         }
       }
 
-      function escapeHtml(str) {
-        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-      }
-
+      // Built via DOM APIs (textContent / createElement) rather than innerHTML so that
+      // none of the locale-sourced text (reachable, via the lang/url_lang selection above,
+      // from location.search) is ever reinterpreted as markup.
       var route = (localeData[lang].route !== undefined) ? localeData[lang].route : '/' + lang;
-      document.getElementById("welcome_title").innerHTML = (localeData[lang].welcome && localeData[lang].welcome.title) || localeData.en.welcome.title;
-      document.getElementById("welcome_instruction").innerHTML = ((localeData[lang].welcome && localeData[lang].welcome.instruction) || localeData.en.welcome.instruction).replace(/\n/g, '<br>').replace(/\[([^\]]+)\]\(\/gallery\)/g, function (match, text) {
-        return `<a href="..${localeData[lang].gallery ? route : ''}/gallery/" style="color: #1b77ff;">${escapeHtml(text)}</a>`;
+      document.getElementById("welcome_title").textContent = (localeData[lang].welcome && localeData[lang].welcome.title) || localeData.en.welcome.title;
+
+      var instructionEl = document.getElementById("welcome_instruction");
+      while (instructionEl.firstChild) {
+        instructionEl.removeChild(instructionEl.firstChild);
+      }
+      var instructionText = (localeData[lang].welcome && localeData[lang].welcome.instruction) || localeData.en.welcome.instruction;
+      var galleryHref = ".." + (localeData[lang].gallery ? route : '') + "/gallery/";
+      var linkPattern = /\[([^\]]+)\]\(\/gallery\)/g;
+      instructionText.split('\n').forEach(function (line, lineIndex) {
+        if (lineIndex > 0) {
+          instructionEl.appendChild(document.createElement('br'));
+        }
+        var lastIndex = 0;
+        var match;
+        linkPattern.lastIndex = 0;
+        while ((match = linkPattern.exec(line)) !== null) {
+          if (match.index > lastIndex) {
+            instructionEl.appendChild(document.createTextNode(line.slice(lastIndex, match.index)));
+          }
+          var link = document.createElement('a');
+          link.href = galleryHref;
+          link.style.color = '#1b77ff';
+          link.textContent = match[1];
+          instructionEl.appendChild(link);
+          lastIndex = linkPattern.lastIndex;
+        }
+        if (lastIndex < line.length) {
+          instructionEl.appendChild(document.createTextNode(line.slice(lastIndex)));
+        }
       });
-      document.getElementById("welcome_loading").innerHTML = (localeData[lang].welcome && localeData[lang].welcome.loading) || localeData.en.welcome.loading;
+
+      document.getElementById("welcome_loading").textContent = (localeData[lang].welcome && localeData[lang].welcome.loading) || localeData.en.welcome.loading;
       
       if (location.hash) {
         document.getElementById("welcome_loading").style.display = '';
