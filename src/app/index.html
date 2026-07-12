@@ -53,9 +53,17 @@
 
       var lang = 'en';
       var url_lang = location.search.substr(1);
-      if (url_lang && localeData[url_lang]) {
-        lang = url_lang;
-      } else if (navigator.language) {
+      // Only ever adopt one of localeData's own (locally-authored, build-time) keys: `lang`
+      // is assigned from the loop's own enumeration, never directly from url_lang/location.search.
+      var url_lang_matched = false;
+      for (var candidateLang in localeData) {
+        if (candidateLang === url_lang) {
+          lang = candidateLang;
+          url_lang_matched = true;
+          break;
+        }
+      }
+      if (!url_lang_matched && navigator.language) {
         var browser_lang = navigator.language
         if (browser_lang.includes('-')) {
           browser_lang = browser_lang.split('-')[0].toLowerCase() + '-' + browser_lang.split('-')[1].toUpperCase();
