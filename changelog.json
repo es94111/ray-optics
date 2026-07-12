@@ -1,6 +1,18 @@
 {
-  "currentVersion": "1.1.0",
+  "currentVersion": "1.1.1",
   "releases": [
+    {
+      "version": "1.1.1",
+      "date": "2026-07-12",
+      "title": "更新內部技術套件與建置環境",
+      "type": "fixed",
+      "changes": [
+        {
+          "tag": "improved",
+          "text": "更新了模擬器背後使用的建置工具與技術套件至最新穩定版本，並將建置環境升級到最新的 Node.js 長期支援版本，提升穩定性與安全性。"
+        }
+      ]
+    },
     {
       "version": "1.1.0",
       "date": "2026-07-11",
