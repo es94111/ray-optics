@@ -29,6 +29,7 @@ import i18next from 'i18next';
  * @property {boolean} [readOnly] - If true, the property is display-only (e.g. module name in ModuleObj).
  * @property {boolean} [updatesSchema] - If true, changing this property invalidates the schema (reserved for future use).
  * @property {Array<PropertyDescriptor>|null} [itemSchema] - For 'array' type: schema for each array item. Keys within itemSchema are relative to each array element.
+ * @property {(objData: Object) => boolean} [visibleIf] - Optional predicate over the raw/serialized object data. When it returns true, the property is treated as non-default (so it is shown even when hidden by the sidebar's "hide default properties" filter), in addition to the normal own-value default check. Used for properties that only become relevant depending on a sibling property (e.g. per-order colors that only matter when a "color by order" toggle is on).
  */
 
 /**

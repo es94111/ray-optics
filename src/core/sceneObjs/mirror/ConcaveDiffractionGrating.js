@@ -76,9 +76,12 @@ class ConcaveDiffractionGrating extends BaseSceneObj {
       { key: 'slitRatio', type: 'number', label: i18next.t('simulator:sceneObjs.DiffractionGrating.slitRatio') },
       { key: 'colorByOrder', type: 'boolean', label: i18next.t('simulator:sceneObjs.DiffractionGrating.colorByOrder'),
         info: i18next.t('simulator:sceneObjs.DiffractionGrating.colorByOrderInfoConcave') },
-      { key: 'order0Color', type: 'text', label: i18next.t('simulator:sceneObjs.DiffractionGrating.order0Color') },
-      { key: 'orderPlus1Color', type: 'text', label: i18next.t('simulator:sceneObjs.DiffractionGrating.orderPlus1Color') },
-      { key: 'orderMinus1Color', type: 'text', label: i18next.t('simulator:sceneObjs.DiffractionGrating.orderMinus1Color') },
+      { key: 'order0Color', type: 'text', label: i18next.t('simulator:sceneObjs.DiffractionGrating.order0Color'),
+        visibleIf: (objData) => !!objData.colorByOrder },
+      { key: 'orderPlus1Color', type: 'text', label: i18next.t('simulator:sceneObjs.DiffractionGrating.orderPlus1Color'),
+        visibleIf: (objData) => !!objData.colorByOrder },
+      { key: 'orderMinus1Color', type: 'text', label: i18next.t('simulator:sceneObjs.DiffractionGrating.orderMinus1Color'),
+        visibleIf: (objData) => !!objData.colorByOrder },
     ];
   }
 

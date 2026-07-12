@@ -262,7 +262,8 @@ function isNonBasicProperty(descriptor) {
 /**
  * Check whether the value at the given descriptor key path differs from the default.
  * Non-basic properties (points, equations, arrays of objects) are always treated as non-default.
- * Basic properties use serializableDefaults for comparison.
+ * Properties with a `visibleIf` predicate that matches the current object data are also treated as non-default.
+ * Other (basic) properties use serializableDefaults for comparison.
  * @param {Object} objData - Raw/serialized object data (plain object with type and properties; never a class instance).
  * @param {Object} descriptor - PropertyDescriptor with a `key` property (dot-separated path).
  * @param {Object} serializableDefaults - The default values structure (e.g. from constructor.serializableDefaults).
@@ -271,6 +272,9 @@ function isNonBasicProperty(descriptor) {
  */
 export function isNonDefault(objData, descriptor, serializableDefaults, basePath = '') {
   if (isNonBasicProperty(descriptor)) {
+    return true;
+  }
+  if (typeof descriptor?.visibleIf === 'function' && descriptor.visibleIf(objData)) {
     return true;
   }
   const key = descriptor?.key;
