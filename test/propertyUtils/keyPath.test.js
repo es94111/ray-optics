@@ -193,6 +193,20 @@ describe('keyPath', () => {
       setByKeyPath(o, 'objs.0.for', []);
       expect(o.objs[0]).toEqual({ type: 'Mirror' });
     });
+
+    it('refuses to write __proto__/constructor/prototype segments', () => {
+      const o = {};
+      setByKeyPath(o, '__proto__.polluted', true);
+      setByKeyPath(o, 'constructor.polluted', true);
+      setByKeyPath(o, 'prototype.polluted', true);
+      expect({}.polluted).toBeUndefined();
+      expect(o).toEqual({});
+
+      const nested = {};
+      setByKeyPath(nested, 'a.__proto__.polluted', true);
+      setByKeyPath(nested, 'a.constructor.polluted', true);
+      expect({}.polluted).toBeUndefined();
+    });
   });
 
   describe('formatKeyPath', () => {

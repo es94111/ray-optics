@@ -34,6 +34,10 @@ RUN npm run build
 # ---- Runtime stage ----------------------------------------------------------
 FROM nginx:1.31-alpine AS runtime
 
+# Pull in patched Alpine packages (e.g. libexpat, c-ares) ahead of whatever the
+# base image tag last baked in, since it isn't pinned to a digest.
+RUN apk update && apk upgrade --no-cache
+
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist /usr/share/nginx/html
 
