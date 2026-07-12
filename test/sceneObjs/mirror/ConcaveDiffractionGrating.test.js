@@ -313,4 +313,66 @@ describe('ConcaveDiffractionGrating', () => {
     // The angle is counterclockwise as seen on the screen, and the internal y-axis points downwards
     expect(result.p1.y).toBeGreaterThan(result.p2.y);
   });
+
+  it('sets "color by order" and the order colors', () => {
+    user.click(100, 100);
+    user.click(200, 100);
+    user.click(150, 150);
+
+    user.set("{{simulator:sceneObjs.DiffractionGrating.colorByOrder}}", true);
+    user.set("{{simulator:sceneObjs.DiffractionGrating.order0Color}}", '#111111');
+    user.set("{{simulator:sceneObjs.DiffractionGrating.orderPlus1Color}}", '#222222');
+    user.set("{{simulator:sceneObjs.DiffractionGrating.orderMinus1Color}}", '#333333');
+
+    expect(obj.serialize()).toEqual({
+      type: "ConcaveDiffractionGrating",
+      p1: { x: 100, y: 100 },
+      p2: { x: 200, y: 100 },
+      p3: { x: 150, y: 150 },
+      colorByOrder: true,
+      order0Color: '#111111',
+      orderPlus1Color: '#222222',
+      orderMinus1Color: '#333333'
+    });
+  });
+
+  describe('coloring diffracted rays by order', () => {
+    // A flat grating (p1, p2, p3 colinear) at x=0, hit at normal incidence by a
+    // ray traveling in +x. With the default lineDensity (1000) and the default
+    // (green) wavelength, this produces exactly the m = -1, 0, +1 orders.
+    beforeEach(() => {
+      user.click(0, -50);
+      user.click(0, 50);
+      user.click(0, 0);
+    });
+
+    function incidentRay() {
+      return {
+        p1: { x: -100, y: 0 },
+        p2: { x: 0, y: 0 },
+        brightness_s: 0.5,
+        brightness_p: 0.5
+      };
+    }
+
+    it('tags the m=0, +1, -1 rays with the configured colors when enabled', () => {
+      user.set("{{simulator:sceneObjs.DiffractionGrating.colorByOrder}}", true);
+      user.set("{{simulator:sceneObjs.DiffractionGrating.order0Color}}", '#111111');
+      user.set("{{simulator:sceneObjs.DiffractionGrating.orderPlus1Color}}", '#222222');
+      user.set("{{simulator:sceneObjs.DiffractionGrating.orderMinus1Color}}", '#333333');
+
+      const result = obj.onRayIncident(incidentRay(), 0, { x: 0, y: 0 });
+
+      expect(result.newRays.length).toBe(3);
+      const colors = result.newRays.map(r => r.colorOverride).sort();
+      expect(colors).toEqual(['#111111', '#222222', '#333333']);
+    });
+
+    it('does not tag rays when "color by order" is off', () => {
+      const result = obj.onRayIncident(incidentRay(), 0, { x: 0, y: 0 });
+
+      expect(result.newRays.length).toBe(3);
+      expect(result.newRays.every(r => r.colorOverride === undefined)).toBe(true);
+    });
+  });
 });

@@ -34,6 +34,10 @@ import { formatCoordinates, parseCoordinates, getScreenAngle } from '../objBarUt
  * @property {boolean} customBrightness - Whether the output brightness are customized.
  * @property {number[]} brightnesses - The brightnesses of the diffracted rays for m = 0, 1, -1, 2, -2, ... when `customBrightness` is true. The number is to be normalized to the brightness of the incident ray. The values not in the array are set to 0.
  * @property {number} slitRatio - The ratio of the slit width to the line interval.
+ * @property {boolean} colorByOrder - Whether to draw the m = 0, +1, -1 diffracted rays in custom colors instead of the wavelength-based color, to make it easier to visually distinguish the orders.
+ * @property {string} order0Color - The CSS hex color used for the m = 0 ray when `colorByOrder` is true.
+ * @property {string} orderPlus1Color - The CSS hex color used for the m = +1 ray when `colorByOrder` is true.
+ * @property {string} orderMinus1Color - The CSS hex color used for the m = -1 ray when `colorByOrder` is true.
  */
 class ConcaveDiffractionGrating extends BaseSceneObj {
   static type = 'ConcaveDiffractionGrating';
@@ -46,6 +50,10 @@ class ConcaveDiffractionGrating extends BaseSceneObj {
     customBrightness: false,
     brightnesses: [1, 0.5, 0.5],
     slitRatio: 0.5,
+    colorByOrder: false,
+    order0Color: '#ffffff',
+    orderPlus1Color: '#ff0000',
+    orderMinus1Color: '#0000ff'
   };
 
   static getDescription(objData, scene, detailed = false) {
@@ -66,6 +74,11 @@ class ConcaveDiffractionGrating extends BaseSceneObj {
         ],
       },
       { key: 'slitRatio', type: 'number', label: i18next.t('simulator:sceneObjs.DiffractionGrating.slitRatio') },
+      { key: 'colorByOrder', type: 'boolean', label: i18next.t('simulator:sceneObjs.DiffractionGrating.colorByOrder'),
+        info: i18next.t('simulator:sceneObjs.DiffractionGrating.colorByOrderInfoConcave') },
+      { key: 'order0Color', type: 'text', label: i18next.t('simulator:sceneObjs.DiffractionGrating.order0Color') },
+      { key: 'orderPlus1Color', type: 'text', label: i18next.t('simulator:sceneObjs.DiffractionGrating.orderPlus1Color') },
+      { key: 'orderMinus1Color', type: 'text', label: i18next.t('simulator:sceneObjs.DiffractionGrating.orderMinus1Color') },
     ];
   }
 
@@ -87,6 +100,24 @@ class ConcaveDiffractionGrating extends BaseSceneObj {
       objBar.createNumber(i18next.t('simulator:sceneObjs.DiffractionGrating.slitRatio'), 0, 1, 0.001, this.slitRatio, function (obj, value) {
         obj.slitRatio = value;
       });
+    }
+
+    if (objBar.showAdvanced(!this.arePropertiesDefault(['colorByOrder']))) {
+      objBar.createBoolean(i18next.t('simulator:sceneObjs.DiffractionGrating.colorByOrder'), this.colorByOrder, function (obj, value) {
+        obj.colorByOrder = value;
+      }, i18next.t('simulator:sceneObjs.DiffractionGrating.colorByOrderInfoConcave'), true);
+
+      if (this.colorByOrder) {
+        objBar.createColor(i18next.t('simulator:sceneObjs.DiffractionGrating.order0Color'), this.order0Color, function (obj, value) {
+          obj.order0Color = value;
+        });
+        objBar.createColor(i18next.t('simulator:sceneObjs.DiffractionGrating.orderPlus1Color'), this.orderPlus1Color, function (obj, value) {
+          obj.orderPlus1Color = value;
+        });
+        objBar.createColor(i18next.t('simulator:sceneObjs.DiffractionGrating.orderMinus1Color'), this.orderMinus1Color, function (obj, value) {
+          obj.orderMinus1Color = value;
+        });
+      }
     }
 
     if (this.p1 && this.p2 && this.p3) {
@@ -534,6 +565,16 @@ class ConcaveDiffractionGrating extends BaseSceneObj {
       diffracted_ray.wavelength = ray.wavelength;
       diffracted_ray.brightness_s = ray.brightness_s * intensity;
       diffracted_ray.brightness_p = ray.brightness_p * intensity;
+
+      if (this.colorByOrder) {
+        if (m === 0) {
+          diffracted_ray.colorOverride = this.order0Color;
+        } else if (m === 1) {
+          diffracted_ray.colorOverride = this.orderPlus1Color;
+        } else if (m === -1) {
+          diffracted_ray.colorOverride = this.orderMinus1Color;
+        }
+      }
 
       // There is currently no good way to make image detection work here. So just set gap to true to disable image detection for the diffracted rays.
       diffracted_ray.gap = true;

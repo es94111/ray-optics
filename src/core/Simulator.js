@@ -31,6 +31,7 @@ import i18next from 'i18next';
  * @property {number} [wavelength] - The wavelength of the ray in nanometers. Only has effect when "Simulate Colors" is on.
  * @property {boolean} gap - Whether the ray is the first ray in a bunch of "continuous" rays. This is for the detection of images to work correctly. The intersection of two rays is considered as a candidate of an image only if the second ray has `gap === false`.
  * @property {boolean} isNew - Whether the ray is just emitted by a source. This is to avoid drawing trivial initial extensions in the "Extended rays" mode.
+ * @property {string} [colorOverride] - A CSS hex color (e.g. "#ff0000") used to draw this ray instead of the wavelength-based color, when "Simulate Colors" is on. Used e.g. by diffraction gratings to color rays by diffraction order.
  */
 
 /**
@@ -739,7 +740,9 @@ class Simulator {
         // Only calculate color and alpha if we have a canvas to draw on
         if (this.canvasRendererMain) {
           if (this.scene.simulateColors) {
-            var color = this.scene.simulator.wavelengthToColor(this.pendingRays[j].wavelength, (this.pendingRays[j].brightness_s + this.pendingRays[j].brightness_p), !this.isSVG && (this.scene.colorMode == 'default'));
+            var color = this.pendingRays[j].colorOverride
+              ? this.scene.simulator.overrideColorToRGBA(this.pendingRays[j].colorOverride, (this.pendingRays[j].brightness_s + this.pendingRays[j].brightness_p), !this.isSVG && (this.scene.colorMode == 'default'))
+              : this.scene.simulator.wavelengthToColor(this.pendingRays[j].wavelength, (this.pendingRays[j].brightness_s + this.pendingRays[j].brightness_p), !this.isSVG && (this.scene.colorMode == 'default'));
           } else {
             var alpha = alpha0 * (this.pendingRays[j].brightness_s + this.pendingRays[j].brightness_p);
           }
@@ -816,7 +819,9 @@ class Simulator {
                 // If the intersections are near each others
                 if (geometry.intersectionIsOnRay(observed_intersection, geometry.line(observed_point, this.pendingRays[j].p1)) && geometry.distanceSquared(observed_point, this.pendingRays[j].p1) > 1e-5 * this.scene.lengthScale * this.scene.lengthScale) {
                   if (this.scene.simulateColors) {
-                    var color = this.scene.simulator.wavelengthToColor(this.pendingRays[j].wavelength, (this.pendingRays[j].brightness_s + this.pendingRays[j].brightness_p) * 0.5, !this.isSVG && (this.scene.colorMode == 'default'));
+                    var color = this.pendingRays[j].colorOverride
+                      ? this.scene.simulator.overrideColorToRGBA(this.pendingRays[j].colorOverride, (this.pendingRays[j].brightness_s + this.pendingRays[j].brightness_p) * 0.5, !this.isSVG && (this.scene.colorMode == 'default'))
+                      : this.scene.simulator.wavelengthToColor(this.pendingRays[j].wavelength, (this.pendingRays[j].brightness_s + this.pendingRays[j].brightness_p) * 0.5, !this.isSVG && (this.scene.colorMode == 'default'));
                   } else {
                     const alpha = alpha0 * ((this.pendingRays[j].brightness_s + this.pendingRays[j].brightness_p) + (this.last_ray.brightness_s + this.last_ray.brightness_p)) * 0.5;
                     this.ctxMain.globalAlpha = alpha;
@@ -880,7 +885,9 @@ class Simulator {
             observed_intersection = geometry.linesIntersection(this.pendingRays[j], this.last_ray);
             if (this.last_intersection && geometry.distanceSquared(this.last_intersection, observed_intersection) < 25 * this.scene.lengthScale * this.scene.lengthScale) {
               if (this.scene.simulateColors) {
-                var color = this.scene.simulator.wavelengthToColor(this.pendingRays[j].wavelength, (this.pendingRays[j].brightness_s + this.pendingRays[j].brightness_p) * 0.5, !this.isSVG && (this.scene.colorMode == 'default'));
+                var color = this.pendingRays[j].colorOverride
+                  ? this.scene.simulator.overrideColorToRGBA(this.pendingRays[j].colorOverride, (this.pendingRays[j].brightness_s + this.pendingRays[j].brightness_p) * 0.5, !this.isSVG && (this.scene.colorMode == 'default'))
+                  : this.scene.simulator.wavelengthToColor(this.pendingRays[j].wavelength, (this.pendingRays[j].brightness_s + this.pendingRays[j].brightness_p) * 0.5, !this.isSVG && (this.scene.colorMode == 'default'));
               } else {
                 const alpha = alpha0 * ((this.pendingRays[j].brightness_s + this.pendingRays[j].brightness_p) + (this.last_ray.brightness_s + this.last_ray.brightness_p)) * 0.5;
                 this.ctxMain.globalAlpha = alpha;
@@ -1091,6 +1098,28 @@ class Simulator {
     } else {
       this.warning = null;
     }
+  }
+
+  /**
+   * Convert a CSS hex color (e.g. from a ray's `colorOverride`) and a brightness into an RGBA color array, in the same format and brightness scaling convention as `wavelengthToColor`.
+   * @param {string} hexColor - The CSS hex color (e.g. "#ff0000").
+   * @param {number} brightness - The brightness of the ray (sum of `brightness_s` and `brightness_p`).
+   * @param {boolean} transform - Whether to apply the exponential adjustment used for the 'lighter' canvas composition (see `wavelengthToColor`).
+   * @returns {Array<number>} RGBA color array.
+   */
+  overrideColorToRGBA(hexColor, brightness, transform) {
+    const bigint = parseInt(hexColor.slice(1), 16);
+    let R = ((bigint >> 16) & 255) / 255 * brightness;
+    let G = ((bigint >> 8) & 255) / 255 * brightness;
+    let B = (bigint & 255) / 255 * brightness;
+
+    if (transform) {
+      R = 1 - Math.exp(-R);
+      G = 1 - Math.exp(-G);
+      B = 1 - Math.exp(-B);
+    }
+
+    return [R, G, B, 1];
   }
 
   wavelengthToColor(wavelength, brightness, transform) {

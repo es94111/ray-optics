@@ -345,7 +345,13 @@
       "brightnesses": "亮度",
       "brightness": "亮度",
       "slitRatio": "狭缝宽度 / 线间距",
-      "mirrored": "反射"
+      "mirrored": "反射",
+      "colorByOrder": "按衍射级次上色",
+      "colorByOrderInfo": "启用且光栅设为反射时，m=0、+1、-1 级的衍射光将以自定义颜色绘制，取代原本依波长决定的颜色，方便分辨各级光线。其余级次仍依波长上色。仅在“模拟颜色”开启时有效。",
+      "colorByOrderInfoConcave": "启用时，m=0、+1、-1 级的衍射光将以自定义颜色绘制，取代原本依波长决定的颜色，方便分辨各级光线。其余级次仍依波长上色。仅在“模拟颜色”开启时有效。",
+      "order0Color": "0 级颜色",
+      "orderPlus1Color": "+1 级颜色",
+      "orderMinus1Color": "-1 级颜色"
     },
     "Ruler": {
       "zeroPoint": "零点",
