@@ -77,9 +77,12 @@ class DiffractionGrating extends LineObjMixin(BaseSceneObj) {
       { key: 'mirrored', type: 'boolean', label: i18next.t('simulator:sceneObjs.DiffractionGrating.mirrored') },
       { key: 'colorByOrder', type: 'boolean', label: i18next.t('simulator:sceneObjs.DiffractionGrating.colorByOrder'),
         info: i18next.t('simulator:sceneObjs.DiffractionGrating.colorByOrderInfo') },
-      { key: 'order0Color', type: 'text', label: i18next.t('simulator:sceneObjs.DiffractionGrating.order0Color') },
-      { key: 'orderPlus1Color', type: 'text', label: i18next.t('simulator:sceneObjs.DiffractionGrating.orderPlus1Color') },
-      { key: 'orderMinus1Color', type: 'text', label: i18next.t('simulator:sceneObjs.DiffractionGrating.orderMinus1Color') },
+      { key: 'order0Color', type: 'text', label: i18next.t('simulator:sceneObjs.DiffractionGrating.order0Color'),
+        visibleIf: (objData) => !!objData.mirrored && !!objData.colorByOrder },
+      { key: 'orderPlus1Color', type: 'text', label: i18next.t('simulator:sceneObjs.DiffractionGrating.orderPlus1Color'),
+        visibleIf: (objData) => !!objData.mirrored && !!objData.colorByOrder },
+      { key: 'orderMinus1Color', type: 'text', label: i18next.t('simulator:sceneObjs.DiffractionGrating.orderMinus1Color'),
+        visibleIf: (objData) => !!objData.mirrored && !!objData.colorByOrder },
     ];
   }
 
