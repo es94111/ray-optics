@@ -1,6 +1,6 @@
 services:
   ray-optics:
-    image: ghcr.io/es94111/ray-optics:latest
+    image: es94111/ray-optics:latest
     restart: unless-stopped
     ports:
       - "8080:80"
