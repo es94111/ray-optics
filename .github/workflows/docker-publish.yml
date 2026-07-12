@@ -26,8 +26,13 @@ jobs:
         uses: actions/checkout@v7
         with:
           # Full history is required: scripts/buildPages.mjs walks the git
-          # log to generate the contributors list.
+          # log to generate the contributors list. It only reads commit
+          # metadata (hash/author/date/message), never blob content, so a
+          # blobless clone keeps the full commit graph while skipping the
+          # ~180MB of historical file content - checkout then fetches only
+          # the blobs needed for the HEAD tree on demand.
           fetch-depth: 0
+          filter: blob:none
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
@@ -58,6 +63,10 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          # Skip the provenance attestation manifest - it triggers an extra
+          # build step and multi-manifest push that this single-arch image
+          # doesn't need.
+          provenance: false
 
       - name: Scan image for vulnerabilities
         uses: aquasecurity/trivy-action@v0.36.0
