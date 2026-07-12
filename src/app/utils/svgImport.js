@@ -81,6 +81,11 @@ export function parseSvg(svgString) {
 
   let doc;
   try {
+    // `doc` is a detached document that is never attached to the live DOM or rendered:
+    // it is only walked for element/attribute structure to extract numeric geometry.
+    // The one piece of text pulled from it (parsererror's textContent, below) is
+    // rendered via Vue text interpolation ({{ }}), never innerHTML/v-html.
+    // codeql[js/xss-through-dom]
     doc = new DOMParser().parseFromString(svgString, 'image/svg+xml');
   } catch (e) {
     result.error = 'Unable to parse SVG: ' + e.message;
