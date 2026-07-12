@@ -78,3 +78,16 @@ jobs:
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: trivy-results.sarif
+
+      - name: Redeploy on Zeabur
+        # Only master pushes update the `latest` tag (see enable={{is_default_branch}}
+        # above), and Zeabur's dashboard/CLI "restart" reuses the node's cached
+        # image instead of re-pulling `latest` — only "redeploy" forces a fresh pull.
+        if: github.ref == 'refs/heads/master'
+        env:
+          ZEABUR_TOKEN: ${{ secrets.ZEABUR_TOKEN }}
+        run: |
+          npx zeabur@latest service redeploy \
+            --id 6a523e43723d6cf6efaf71ea \
+            --environment-id 6a523e34104975fcb4676271 \
+            -y -i=false
