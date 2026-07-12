@@ -1,6 +1,18 @@
 {
-  "currentVersion": "1.2.3",
+  "currentVersion": "1.2.4",
   "releases": [
+    {
+      "version": "1.2.4",
+      "date": "2026-07-12",
+      "title": "改進圖庫縮圖產生流程以加快網站部署速度",
+      "type": "improved",
+      "changes": [
+        {
+          "tag": "improved",
+          "text": "改進了圖庫縮圖與預覽圖在部署時的產生方式，讓新版本上線所需的建置時間大幅縮短，使用方式完全不受影響。"
+        }
+      ]
+    },
     {
       "version": "1.2.3",
       "date": "2026-07-12",
