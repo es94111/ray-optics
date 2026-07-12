@@ -32,11 +32,16 @@ const __dirname = path.dirname(__filename);
 // Copy the third-party libraries used by the non-app pages to the /dist/thirdparty folder
 fs.mkdirSync(path.join(__dirname, '../dist/thirdparty'), { recursive: true });
 fs.copyFileSync(path.join(__dirname, '../node_modules/jquery/dist/jquery.min.js'), path.join(__dirname, '../dist/thirdparty/jquery.min.js'));
+// Bootstrap 3's CSS (and the glyphicon font it references) is vendored directly in
+// src/pages/thirdparty rather than pulled from npm: the upstream `bootstrap` package's
+// 3.x line has unpatched XSS advisories in its Tooltip/Popover JS, which this project
+// never uses, so bootstrap.min.js is replaced with the small first-party
+// scripts/bs3-compat.js instead of being shipped at all.
 fs.mkdirSync(path.join(__dirname, '../dist/thirdparty/bootstrap'), { recursive: true });
-fs.copyFileSync(path.join(__dirname, '../node_modules/bootstrap3/dist/css/bootstrap.min.css'), path.join(__dirname, '../dist/thirdparty/bootstrap/bootstrap.min.css'));
-fs.copyFileSync(path.join(__dirname, '../node_modules/bootstrap3/dist/js/bootstrap.min.js'), path.join(__dirname, '../dist/thirdparty/bootstrap/bootstrap.min.js'));
+fs.copyFileSync(path.join(__dirname, '../src/pages/thirdparty/bootstrap/bootstrap.min.css'), path.join(__dirname, '../dist/thirdparty/bootstrap/bootstrap.min.css'));
+fs.copyFileSync(path.join(__dirname, '../src/pages/scripts/bs3-compat.js'), path.join(__dirname, '../dist/thirdparty/bootstrap/bs3-compat.js'));
 fs.mkdirSync(path.join(__dirname, '../dist/thirdparty/fonts'), { recursive: true });
-fs.copyFileSync(path.join(__dirname, '../node_modules/bootstrap3/dist/fonts/glyphicons-halflings-regular.woff2'), path.join(__dirname, '../dist/thirdparty/fonts/glyphicons-halflings-regular.woff2'));
+fs.copyFileSync(path.join(__dirname, '../src/pages/thirdparty/fonts/glyphicons-halflings-regular.woff2'), path.join(__dirname, '../dist/thirdparty/fonts/glyphicons-halflings-regular.woff2'));
 fs.mkdirSync(path.join(__dirname, '../dist/thirdparty/mathjax'), { recursive: true });
 fs.copyFileSync(path.join(__dirname, '../node_modules/mathjax/tex-mml-chtml.js'), path.join(__dirname, '../dist/thirdparty/mathjax/tex-mml-chtml.js'));
 fs.cpSync(

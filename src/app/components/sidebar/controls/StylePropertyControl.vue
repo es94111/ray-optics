@@ -90,7 +90,7 @@
 
 <script>
 import { computed } from 'vue'
-import { getByKeyPath } from '../../../../core/propertyUtils/keyPath.js'
+import { getByKeyPath, isUnsafeKey } from '../../../../core/propertyUtils/keyPath.js'
 import PropertyControlLabel from './PropertyControlLabel.vue'
 import PropertyControlError from './PropertyControlError.vue'
 import NumberPropertyControl from './NumberPropertyControl.vue'
@@ -175,6 +175,9 @@ export default {
         : createDefaultStyle()
 
       const parts = subKey.split('.')
+      if (parts.some(isUnsafeKey)) {
+        return
+      }
       let target = style
       for (let i = 0; i < parts.length - 1; i++) {
         if (!target[parts[i]] || typeof target[parts[i]] !== 'object') {
