@@ -38,7 +38,7 @@
     "webpack-dev-server": "^6.0.0"
   },
   "optionalDependencies": {
-    "@babel/preset-env": "^7.29.7",
+    "@babel/preset-env": "^8.0.2",
     "@inquirer/prompts": "^8.5.2",
     "canvas": "^3.2.3",
     "handlebars": "^4.7.9",
