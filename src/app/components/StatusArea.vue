@@ -17,6 +17,7 @@
 <template>
   <div class="footer-left" id="footer-left" :style="notificationStyle">
     <div class="status-inline">
+      <span class="version-badge">v{{ currentVersion }}</span>
       <span
         v-show="alphaFeatures.length > 0"
         class="alpha-icon"
@@ -111,6 +112,7 @@ import VirtualKeyboard from './VirtualKeyboard.vue'
 import { vTooltipPopover } from '../directives/tooltip-popover'
 import { parseLinks } from '../utils/links.js'
 import { formatStatusLineHtml } from '../utils/compactJsonInStatusMessage.js'
+import changelog from '../../../changelog.json'
 
 export default {
   name: 'StatusArea',
@@ -290,6 +292,7 @@ export default {
 
     return {
       showStatus: preferences.showStatus,
+      currentVersion: changelog.currentVersion,
       notificationStyle,
       statusStyle,
       forceStopStyle,
@@ -339,6 +342,15 @@ export default {
   align-items: center;
   gap: 0.35rem;
   pointer-events: auto;
+}
+
+.version-badge {
+  color: gray;
+  opacity: 0.7;
+  font-size: 0.7em;
+  font-weight: 600;
+  margin: 3px;
+  user-select: none;
 }
 
 .alpha-icon,
