@@ -40,6 +40,12 @@ import i18next from 'i18next';
  * group's centroid) is persisted per group key in `obj.spotInfoTextOffsets`, which the host
  * class should include in its `serializableDefaults` (as `spotInfoTextOffsets: {}`) so the
  * arrangement survives save/load.
+ *
+ * A host class whose surface shape has a well-defined local tangent/normal (e.g. a line
+ * segment) can additionally pass the ray's angle of incidence to `recordSpotInfoHit`, which
+ * then shows a brightness-weighted average "Angle=" line alongside Pos/Size, grouped and
+ * labeled the same way as the m=0/+1/-1 groups above. This is opt-in per call site; omitting
+ * it (the default) keeps the pre-existing Pos/Size-only display.
  */
 
 /**
@@ -99,7 +105,10 @@ function getSpotGroup(obj, order) {
       minX: Infinity,
       maxX: -Infinity,
       minY: Infinity,
-      maxY: -Infinity
+      maxY: -Infinity,
+      hasAngle: false,
+      sumAngle: 0,
+      sumAngleWeight: 0
     };
   }
   return group;
@@ -113,8 +122,12 @@ function getSpotGroup(obj, order) {
  * @param {Object} obj - The scene object instance.
  * @param {Point} incidentPoint - The point where the ray hit the surface.
  * @param {Ray} ray - The incident ray (its brightness is used as the weight).
+ * @param {number} [incidenceAngle] - The angle of incidence (from the surface normal, in
+ *   radians, in [0, π/2]), if the caller's surface shape supports computing it. When given,
+ *   the brightness-weighted average angle is tracked per group and shown as an extra line by
+ *   `drawSpotInfo`. Omit for shapes that don't (yet) compute this.
  */
-export function recordSpotInfoHit(obj, incidentPoint, ray) {
+export function recordSpotInfoHit(obj, incidentPoint, ray, incidenceAngle) {
   if (!obj.showSpotInfo) return;
 
   const order = Number.isInteger(ray.diffractionOrder) ? ray.diffractionOrder : null;
@@ -132,14 +145,21 @@ export function recordSpotInfoHit(obj, incidentPoint, ray) {
   if (incidentPoint.x > group.maxX) group.maxX = incidentPoint.x;
   if (incidentPoint.y < group.minY) group.minY = incidentPoint.y;
   if (incidentPoint.y > group.maxY) group.maxY = incidentPoint.y;
+
+  if (typeof incidenceAngle === 'number') {
+    group.hasAngle = true;
+    group.sumAngle += incidenceAngle * w;
+    group.sumAngleWeight += w;
+  }
 }
 
 /**
- * Draw the spot info text overlay (position and size), if enabled and data is available.
- * One line pair is drawn per diffraction-order group that received hits (see
- * `recordSpotInfoHit`), each near its own centroid (offset by any manual drag, see
- * `dragSpotInfoText`), prefixed with "m=<order>" when it corresponds to a diffraction order
- * rather than the default (non-diffracted) group.
+ * Draw the spot info text overlay (position, size, and, when available, angle of incidence),
+ * if enabled and data is available. One line group is drawn per diffraction-order group that
+ * received hits (see `recordSpotInfoHit`), each near its own centroid (offset by any manual
+ * drag, see `dragSpotInfoText`), prefixed with "m=<order>" when it corresponds to a
+ * diffraction order rather than the default (non-diffracted) group. A third "Angle=" line is
+ * added below Pos/Size for groups whose hits carried an incidence angle.
  * Should be called at the end of `draw`, unconditionally (it checks `isAboveLight` itself
  * so that it is only drawn once, in the same layer as the Detector's readout). Also
  * (re)builds `obj.spotInfoBoxes`, the hit-test cache used by `checkSpotInfoMouseOver`.
@@ -193,8 +213,18 @@ export function drawSpotInfo(obj, canvasRenderer, isAboveLight, isHovered) {
     ctx.fillText(posText, anchorX, anchorY);
     ctx.fillText(sizeText, anchorX, anchorY + lineHeight);
 
-    const width = Math.max(ctx.measureText(posText).width, ctx.measureText(sizeText).width);
-    obj.spotInfoBoxes.push({ key, x: anchorX, y: anchorY, width, height: 2 * lineHeight });
+    let width = Math.max(ctx.measureText(posText).width, ctx.measureText(sizeText).width);
+    let lineCount = 2;
+
+    if (group.hasAngle) {
+      const avgAngleDeg = (group.sumAngleWeight > 0 ? group.sumAngle / group.sumAngleWeight : 0) * 180 / Math.PI;
+      const angleText = prefix + 'Angle=' + avgAngleDeg.toFixed(2) + '°';
+      ctx.fillText(angleText, anchorX, anchorY + 2 * lineHeight);
+      width = Math.max(width, ctx.measureText(angleText).width);
+      lineCount = 3;
+    }
+
+    obj.spotInfoBoxes.push({ key, x: anchorX, y: anchorY, width, height: lineCount * lineHeight });
   }
 
   ctx.globalCompositeOperation = 'source-over';
