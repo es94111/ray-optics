@@ -113,12 +113,18 @@ class Mirror extends LineObjMixin(BaseFilter) {
   }
 
   onRayIncident(ray, rayIndex, incidentPoint) {
-    recordSpotInfoHit(this, incidentPoint, ray);
-
     var rx = ray.p1.x - incidentPoint.x;
     var ry = ray.p1.y - incidentPoint.y;
     var mx = this.p2.x - this.p1.x;
     var my = this.p2.y - this.p1.y;
+
+    // Angle between the incoming ray and the mirror line, unsigned and folded into [0, π/2],
+    // then converted to the angle from the surface normal (0 = normal incidence).
+    var angleFromLine = Math.abs(Math.atan2(rx * my - ry * mx, rx * mx + ry * my));
+    if (angleFromLine > Math.PI / 2) angleFromLine = Math.PI - angleFromLine;
+    var incidenceAngle = Math.PI / 2 - angleFromLine;
+
+    recordSpotInfoHit(this, incidentPoint, ray, incidenceAngle);
 
     ray.p1 = incidentPoint;
     ray.p2 = geometry.point(incidentPoint.x + rx * (my * my - mx * mx) - 2 * ry * mx * my, incidentPoint.y + ry * (mx * mx - my * my) - 2 * rx * mx * my);
