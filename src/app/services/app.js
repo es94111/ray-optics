@@ -394,6 +394,12 @@ function initAppService() {
         document.getElementById('apply_to_all_mobile_container').style.display = 'none';
       }
 
+      // Universal action, available for any object with a well-defined default center, regardless of type.
+      if (typeof objBar.targetObj.getDefaultCenter === 'function' && objBar.targetObj.getDefaultCenter()) {
+        objBar.createButton(i18next.t('simulator:sceneObjs.common.setAsOrigin'), function (obj) {
+          obj.scene.setOriginToObj(obj);
+        }, true);
+      }
 
       document.getElementById('obj_bar').style.display = '';
     } else {

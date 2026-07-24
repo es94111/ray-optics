@@ -1180,6 +1180,51 @@ class Scene {
   }
 
   /**
+   * Translate every object in the scene by the given displacement, while adjusting the viewport so the scene stays visually in place.
+   * Objects bound to a {@link sceneObjs.Handle} (via `objIndices` or `controlPoints`) are not moved directly, since the handle itself cascades the displacement to them; moving them again here would double the displacement.
+   * @param {number} dx - The x-coordinate displacement.
+   * @param {number} dy - The y-coordinate displacement.
+   */
+  translateAllObjs(dx, dy) {
+    if (dx === 0 && dy === 0) return;
+
+    const boundIndices = new Set();
+    for (const obj of this.objs) {
+      if (obj.constructor.type === 'Handle') {
+        for (const index of obj.objIndices) {
+          boundIndices.add(index);
+        }
+        for (const controlPoint of obj.controlPoints) {
+          boundIndices.add(controlPoint.targetObjIndex);
+        }
+      }
+    }
+
+    for (let i = 0; i < this.objs.length; i++) {
+      if (!boundIndices.has(i)) {
+        this.objs[i].move(dx, dy);
+      }
+    }
+
+    // Keep the current view unchanged so the scene does not appear to jump.
+    this.origin.x -= dx * this.scale;
+    this.origin.y -= dy * this.scale;
+  }
+
+  /**
+   * Redefine the coordinate origin (0,0) of the scene to be at the default center of the given object, by translating every object in the scene accordingly. The current view is kept visually unchanged.
+   * @param {BaseSceneObj} obj - The object whose default center should become the new origin.
+   * @returns {boolean} Whether the origin was changed (false if the object has no default center).
+   */
+  setOriginToObj(obj) {
+    if (!obj || typeof obj.getDefaultCenter !== 'function') return false;
+    const center = obj.getDefaultCenter();
+    if (!center) return false;
+    this.translateAllObjs(-center.x, -center.y);
+    return true;
+  }
+
+  /**
    * Perform an delayed validation on the scene and generate warnings if necessary. This method should not be called when the editing is in progress.
    */
   validateDelayed() {

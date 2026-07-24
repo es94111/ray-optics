@@ -193,7 +193,8 @@
       "imageDetectionWarning": "This component does not support image detection.",
       "nonSimulateColorsWarning": "This component only works when \"Simulate Colors\" is on.",
       "showSpotInfo": "Show spot info",
-      "showSpotInfoInfo": "When on, shows the brightness-weighted average position of the points where rays hit this surface, and the diagonal of their bounding box (as an approximation of the spot size), based on the current simulation run."
+      "showSpotInfoInfo": "When on, shows the brightness-weighted average position of the points where rays hit this surface, and the diagonal of their bounding box (as an approximation of the spot size), based on the current simulation run.",
+      "setAsOrigin": "Set as coordinate origin"
     },
     "LineObjMixin": {
       "endpoint1": "1st endpoint",
