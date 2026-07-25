@@ -278,18 +278,19 @@ describe('ConcaveDiffractionGrating', () => {
     user.click(150, 150);
 
     const centerLabel = '{{simulator:sceneObjs.LineObjMixin.center}}';
-    expect(user.getValue(centerLabel)).toBe('(150, 150)');
+    // The object bar uses the user-facing convention, where the y-axis points upwards.
+    expect(user.getValue(centerLabel)).toBe('(150, -150)');
 
     user.set(centerLabel, '(400, 500)');
     const result = obj.serialize();
     // p3 (the default center) moves to the new position
     expect(result.p3.x).toBeCloseTo(400, 5);
-    expect(result.p3.y).toBeCloseTo(500, 5);
+    expect(result.p3.y).toBeCloseTo(-500, 5);
     // The shape is preserved: p1 and p2 shift by the same vector as p3
     expect(result.p1.x).toBeCloseTo(350, 5);
-    expect(result.p1.y).toBeCloseTo(450, 5);
+    expect(result.p1.y).toBeCloseTo(-550, 5);
     expect(result.p2.x).toBeCloseTo(450, 5);
-    expect(result.p2.y).toBeCloseTo(450, 5);
+    expect(result.p2.y).toBeCloseTo(-550, 5);
   });
 
   it('shows and edits the rotation angle in the object bar', () => {

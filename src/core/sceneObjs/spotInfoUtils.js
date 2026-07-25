@@ -15,6 +15,7 @@
  */
 
 import i18next from 'i18next';
+import { toDisplayY } from '../displayCoords.js';
 
 /**
  * Shared "show spot info" feature for reflective surfaces (mirrors and the concave
@@ -208,7 +209,9 @@ export function drawSpotInfo(obj, canvasRenderer, isAboveLight, isHovered) {
     const anchorY = cy + offset.y;
 
     const prefix = group.order === null ? '' : `m=${group.order > 0 ? '+' : ''}${group.order} `;
-    const posText = prefix + 'Pos=(' + cx.toFixed(2) + ', ' + cy.toFixed(2) + ')';
+    // `cx`/`cy` stay in scene coordinates (they anchor the text block below); only the readout is
+    // converted to the user-facing convention.
+    const posText = prefix + 'Pos=(' + cx.toFixed(2) + ', ' + toDisplayY(cy).toFixed(2) + ')';
     const sizeText = prefix + 'Size=' + size.toFixed(2);
     ctx.fillText(posText, anchorX, anchorY);
     ctx.fillText(sizeText, anchorX, anchorY + lineHeight);

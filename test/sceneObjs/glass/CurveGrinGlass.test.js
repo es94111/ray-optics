@@ -165,11 +165,12 @@ describe('CurveGrinGlass', () => {
     user.click(0, 100);
     user.click(0, 0);
 
+    // Entered in the user-facing convention, where the y-axis points upwards.
     user.set("{{simulator:sceneObjs.common.coordOrigin}}", "(50,75)");
 
     const result = obj.serialize();
     expect(result.type).toBe('CurveGrinGlass');
-    expect(result.origin).toEqual({ x: 50, y: 75 });
+    expect(result.origin).toEqual({ x: 50, y: -75 });
   });
 
   it('finishes drawing when closed', () => {

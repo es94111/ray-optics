@@ -19,6 +19,7 @@ import geometry from '../geometry.js';
 import Simulator from '../Simulator.js';
 import i18next from 'i18next';
 import { evaluateLatex } from '../equation.js';
+import { formatCoordinates, parseCoordinates } from './objBarUtils.js';
 import { parseTex } from 'tex-math-parser'
 import * as math from 'mathjs';
 
@@ -94,12 +95,10 @@ class BaseGrinGlass extends BaseGlass {
     }, '<ul><li>' + i18next.t('simulator:sceneObjs.BaseGrinGlass.absorptionFnInfo.absorption') + '</li><li>' + i18next.t('simulator:sceneObjs.common.eqnInfo.constants') + '<br><code>pi e</code></li><li>' + i18next.t('simulator:sceneObjs.common.eqnInfo.operators') + '<br><code>+ - * / ^</code></li><li>' + i18next.t('simulator:sceneObjs.common.eqnInfo.functions') + '<br><code>sqrt sin cos tan sec csc cot sinh cosh tanh log</code> (' + i18next.t('simulator:sceneObjs.common.eqnInfo.naturalLog') + ') <code>exp arcsin arccos arctan arcsinh arccosh arctanh floor round ceil trunc sgn max min abs</code></li><li>' + i18next.t('simulator:sceneObjs.common.eqnInfo.module') + '</li></ul>');
 
     if (this.constructor.type !== 'ParamGrinGlass') {
-      objBar.createTuple(i18next.t('simulator:sceneObjs.common.coordOrigin'), '(' + this.origin.x + ',' + this.origin.y + ')', function (obj, value) {
-        const commaPosition = value.indexOf(',');
-        if (commaPosition != -1) {
-          const n_origin_x = parseFloat(value.slice(1, commaPosition));
-          const n_origin_y = parseFloat(value.slice(commaPosition + 1, -1));
-          obj.origin = geometry.point(n_origin_x, n_origin_y);
+      objBar.createTuple(i18next.t('simulator:sceneObjs.common.coordOrigin'), formatCoordinates(this.origin), function (obj, value) {
+        const p = parseCoordinates(value);
+        if (p) {
+          obj.origin = p;
           obj.initFns();
         }
       });

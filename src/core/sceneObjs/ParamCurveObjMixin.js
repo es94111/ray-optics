@@ -17,6 +17,7 @@
 import geometry from '../geometry.js';
 import BaseSceneObj from './BaseSceneObj.js';
 import { evaluateLatex } from '../equation.js';
+import { formatCoordinates, parseCoordinates } from './objBarUtils.js';
 import { latexToMathJS } from '../propertyUtils/equationConversion.js';
 import i18next from 'i18next';
 import * as math from 'mathjs';
@@ -965,12 +966,10 @@ const ParamCurveObjMixin = Base => class extends Base {
     }
 
     // Add origin control
-    objBar.createTuple(i18next.t('simulator:sceneObjs.common.coordOrigin'), '(' + this.origin.x + ',' + this.origin.y + ')', function (obj, value) {
-      const commaPosition = value.indexOf(',');
-      if (commaPosition != -1) {
-        const origin_x = parseFloat(value.slice(1, commaPosition));
-        const origin_y = parseFloat(value.slice(commaPosition + 1, -1));
-        obj.origin = geometry.point(origin_x, origin_y);
+    objBar.createTuple(i18next.t('simulator:sceneObjs.common.coordOrigin'), formatCoordinates(this.origin), function (obj, value) {
+      const p = parseCoordinates(value);
+      if (p) {
+        obj.origin = p;
         // Invalidate path when origin changes
         delete obj.path;
       }
