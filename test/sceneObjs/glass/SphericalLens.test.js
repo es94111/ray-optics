@@ -393,7 +393,8 @@ describe('SphericalLens', () => {
     await new Promise(resolve => setTimeout(resolve, 0));
 
     const centerLabel = '{{simulator:sceneObjs.LineObjMixin.center}}';
-    expect(user.getValue(centerLabel)).toBe('(150, 200)');
+    // The object bar uses the user-facing convention, where the y-axis points upwards.
+    expect(user.getValue(centerLabel)).toBe('(150, -200)');
 
     user.set(centerLabel, '(400, 500)');
     const result = obj.serialize();
@@ -401,7 +402,7 @@ describe('SphericalLens', () => {
     const newCenterX = result.path.reduce((s, p) => s + p.x, 0) / result.path.length;
     const newCenterY = result.path.reduce((s, p) => s + p.y, 0) / result.path.length;
     expect(newCenterX).toBeCloseTo(400, 5);
-    expect(newCenterY).toBeCloseTo(500, 5);
+    expect(newCenterY).toBeCloseTo(-500, 5);
   });
 
   it('shows and edits the rotation angle in the object bar', async () => {

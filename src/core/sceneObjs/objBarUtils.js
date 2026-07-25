@@ -15,18 +15,22 @@
  */
 
 import geometry from '../geometry.js';
+import { toDisplayY, fromDisplayY } from '../displayCoords.js';
 
 /**
- * Format a point as a coordinate tuple string for display in the object bar.
- * @param {Point} p - The point.
+ * Format a point as a coordinate tuple string for display in the object bar, in the user-facing
+ * coordinate convention (see {@link module:displayCoords}).
+ * @param {Point} p - The point, in scene coordinates.
  * @returns {string} The formatted string "(x, y)".
  */
-export const formatCoordinates = p => '(' + (Math.round(p.x * 1000000) / 1000000) + ', ' + (Math.round(p.y * 1000000) / 1000000) + ')';
+export const formatCoordinates = p => '(' + (Math.round(p.x * 1000000) / 1000000) + ', ' + (Math.round(toDisplayY(p.y) * 1000000) / 1000000) + ')';
 
 /**
- * Parse a coordinate tuple string (e.g. "(10, 20)" or "10, 20") entered in the object bar. Full-width parentheses and commas from CJK input methods are also accepted.
+ * Parse a coordinate tuple string (e.g. "(10, 20)" or "10, 20") entered in the object bar, which is
+ * in the user-facing coordinate convention (see {@link module:displayCoords}). Full-width parentheses
+ * and commas from CJK input methods are also accepted.
  * @param {string} value - The input string.
- * @returns {Point|null} The parsed point, or null if the input is invalid.
+ * @returns {Point|null} The parsed point in scene coordinates, or null if the input is invalid.
  */
 export const parseCoordinates = value => {
   const parts = String(value).replace(/[()（）\s]/g, '').split(/[,，]/);
@@ -34,7 +38,7 @@ export const parseCoordinates = value => {
   const x = parseFloat(parts[0]);
   const y = parseFloat(parts[1]);
   if (isNaN(x) || isNaN(y)) return null;
-  return geometry.point(x, y);
+  return geometry.point(x, fromDisplayY(y));
 };
 
 /**

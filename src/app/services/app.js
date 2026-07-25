@@ -23,6 +23,7 @@ import * as bootstrap from 'bootstrap';
 import 'bootstrap/scss/bootstrap.scss';
 import { Scene, Simulator, Editor, geometry, sceneObjs } from '../../core/index.js';
 import { DATA_VERSION } from '../../core/Scene.js';
+import { toDisplayY, fromDisplayY } from '../../core/displayCoords.js';
 import { objBar } from '../services/objBar.js';
 import { saveAs } from 'file-saver';
 import i18next, { t, use } from 'i18next';
@@ -220,7 +221,9 @@ function initAppService() {
   editor.on('positioningStart', function (e) {
     document.getElementById('xybox-container').style.left = (e.dragContext.targetPoint.x * scene.scale + scene.origin.x) + 'px';
     document.getElementById('xybox-container').style.top = (e.dragContext.targetPoint.y * scene.scale + scene.origin.y) + 'px';
-    document.getElementById('xybox').value = '(' + (e.dragContext.targetPoint.x) + ',' + (e.dragContext.targetPoint.y) + ')';
+    // The box position above is in screen space; the value shown in it is in the user-facing
+    // coordinate convention (see `core/displayCoords.js`), matching every other coordinate readout.
+    document.getElementById('xybox').value = '(' + (e.dragContext.targetPoint.x) + ',' + toDisplayY(e.dragContext.targetPoint.y) + ')';
     document.getElementById('xybox').size = document.getElementById('xybox').value.length;
     document.getElementById('xybox-container').style.display = '';
     document.getElementById('xybox').select();
@@ -343,8 +346,10 @@ function initAppService() {
   });
 
   editor.on('mouseCoordinateChange', function (e) {
-    statusEmitter.emit(STATUS_EVENT_NAMES.MOUSE_POSITION, 
-      e.mousePos ? { x: e.mousePos.x, y: e.mousePos.y } : { x: undefined, y: undefined }
+    // Converted here, at the boundary between the core (scene coordinates) and the status UI, so
+    // that the readout is in the user-facing convention (see `core/displayCoords.js`).
+    statusEmitter.emit(STATUS_EVENT_NAMES.MOUSE_POSITION,
+      e.mousePos ? { x: e.mousePos.x, y: toDisplayY(e.mousePos.y) } : { x: undefined, y: undefined }
     );
   });
 
@@ -1316,7 +1321,8 @@ window.onbeforeunload = function (e) {
 function confirmPositioning(ctrl, shift) {
   var xyData = JSON.parse('[' + document.getElementById('xybox').value.replace(/\(|\)/g, '') + ']');
   if (xyData.length == 2) {
-    editor.confirmPositioning(xyData[0], xyData[1], ctrl, shift);
+    // The user enters the coordinates in the user-facing convention (see `core/displayCoords.js`).
+    editor.confirmPositioning(xyData[0], fromDisplayY(xyData[1]), ctrl, shift);
   }
 }
 

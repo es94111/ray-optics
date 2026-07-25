@@ -46,6 +46,7 @@
 import { computed, ref, watch, onBeforeUnmount } from 'vue'
 import i18next from 'i18next'
 import { getByKeyPath } from '../../../../core/propertyUtils/keyPath.js'
+import { toDisplayY, fromDisplayY, fromDisplayPoint } from '../../../../core/displayCoords.js'
 import {
   splitTopLevelCommas,
   valueToFormulaDisplay,
@@ -73,6 +74,11 @@ function isLiteralNumericPair(display) {
   return parts.every((p) => LITERAL_NUMERIC_TOKEN.test(p.trim()))
 }
 
+/**
+ * Parse a displayed "x, y" pair into a single point in scene coordinates, or `[]` if it is not a
+ * literal numeric pair. The displayed y is in the user-facing convention (see
+ * `core/displayCoords.js`), so it is converted back here.
+ */
 function parseLiteralPoint(display) {
   const parts = splitTopLevelCommas(display.trim())
   if (parts.length !== 2) {
@@ -83,7 +89,7 @@ function parseLiteralPoint(display) {
   if (!Number.isFinite(x) || !Number.isFinite(y)) {
     return []
   }
-  return [{ x, y }]
+  return [fromDisplayPoint({ x, y })]
 }
 
 function tupleCellsAllMissing(tuple) {
@@ -108,6 +114,7 @@ function collectExpandedTemplatePoints(displayValue, moduleName, templateSourceI
     if (!inst || typeof inst.getExpandedPropertyValues !== 'function') {
       continue
     }
+    // These are the evaluated stored values, i.e. already in scene coordinates.
     const valueArrays = paths.map((kp) => {
       const sourceKeyPath = `${templateSourceIndex}.${kp}`
       return inst.getExpandedPropertyValues(sourceKeyPath)
@@ -194,8 +201,15 @@ export default {
       return !isFormulaValueSupported(x) || !isFormulaValueSupported(y)
     })
 
+    // A literal numeric y is shown in the user-facing coordinate convention (see
+    // `core/displayCoords.js`). A formula-valued y (only possible inside a module) is shown as
+    // written, since negating it would mean rewriting the user's expression.
+    const yDisplayRaw = computed(() =>
+      typeof yRaw.value === 'number' ? toDisplayY(yRaw.value) : yRaw.value
+    )
+
     const displayValue = computed(() =>
-      `${valueToFormulaDisplay(xRaw.value)}, ${valueToFormulaDisplay(yRaw.value)}`
+      `${valueToFormulaDisplay(xRaw.value)}, ${valueToFormulaDisplay(yDisplayRaw.value)}`
     )
 
     const onCommit = (text) => {
@@ -225,7 +239,8 @@ export default {
         ? { ...currentPt }
         : {}
       pt.x = formulaDisplayToValue(xText)
-      pt.y = formulaDisplayToValue(yText)
+      const yValue = formulaDisplayToValue(yText)
+      pt.y = typeof yValue === 'number' ? fromDisplayY(yValue) : yValue
 
       emit('update:value', pt)
     }
