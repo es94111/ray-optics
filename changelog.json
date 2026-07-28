@@ -1,6 +1,18 @@
 {
-  "currentVersion": "1.6.0",
+  "currentVersion": "1.6.1",
   "releases": [
+    {
+      "version": "1.6.1",
+      "date": "2026-07-28",
+      "title": "修正 AI 助理光學元件型別名稱",
+      "type": "fixed",
+      "changes": [
+        {
+          "tag": "fixed",
+          "text": "修正 AI 助理知識庫中數個光學元件的型別名稱與屬性名稱，讓 AI 助理產生的場景 JSON 可以直接被模擬器接受，不再因為型別名稱對不上而無法建立元件。"
+        }
+      ]
+    },
     {
       "version": "1.6.0",
       "date": "2026-07-25",
