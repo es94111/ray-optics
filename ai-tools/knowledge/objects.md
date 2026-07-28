@@ -314,13 +314,13 @@ A ideal lens defined by a segment (the shape of the infinitely thin lens) from `
 }
 ```
 
-### Ideal Curved Mirror
+### Ideal Mirror
 
 A ideal curved mirror defined by a segment (the nearly flat surface under the paraxial approximation) from `p1` to `p2` and a focal length (positive for converging, negative for diverging).
 
 ```json
 {
-  "type": "IdealCurvedMirror",
+  "type": "IdealMirror",
   "p1": { "x": 500, "y": 300 },
   "p2": { "x": 500, "y": 400 },
   "focalLength": 100
@@ -331,7 +331,7 @@ A ideal curved mirror defined by a segment (the nearly flat surface under the pa
 
 In each diffraction grating below, the `lineDensity` property is the number of lines per millimeter. To control the intensity, one way is to assume it is an array of microscopic blockers which blocks a ratio of `slitRatio` of the line segment:
 
-Another way is to set `customIntensity` to `true` and set `brightnesses` to an array of numbers between 0 and 1. The numbers in the array correspond to m = 0, 1, -1, 2, -2, …. The number is to be normalized to the brightness of the incident ray.
+Another way is to set `customBrightness` to `true` and set `brightnesses` to an array of numbers between 0 and 1. The numbers in the array correspond to m = 0, 1, -1, 2, -2, …. The number is to be normalized to the brightness of the incident ray.
 
 ### Linear Diffraction Grating
 
@@ -345,7 +345,7 @@ A trasmittive (`mirrored == false`) or reflective (`mirrored == true`) linear di
   "lineDensity": 100,
   "mirrored": true,
   "slitRatio": 0.5,
-  "customIntensity": false,
+  "customBrightness": false,
   "brightnesses": [
     1,
     0.5,
@@ -354,19 +354,19 @@ A trasmittive (`mirrored == false`) or reflective (`mirrored == true`) linear di
 }
 ```
 
-### Convex Diffraction Grating
+### Concave Diffraction Grating
 
 A reflective diffraction grating with the shape of a circular arc. The arc is defined by two endpoints (`p1` and `p2`) and an additional point on the arc (`p3`) that determines its curvature. In the following example the focal point is at the left of the surface.
 
 ```json
 {
-  "type": "ConvexDiffractionGrating",
+  "type": "ConcaveDiffractionGrating",
   "p1": { "x": 500, "y": 300 },
   "p2": { "x": 500, "y": 400 },
   "p3": { "x": 510, "y": 350 },
   "lineDensity": 100,
   "slitRatio": 0.5,
-  "customIntensity": false,
+  "customBrightness": false,
   "brightnesses": [
     1,
     0.5,
