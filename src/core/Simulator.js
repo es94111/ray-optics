@@ -18,8 +18,8 @@ import CanvasRenderer from './CanvasRenderer.js';
 import FloatColorRenderer from './FloatColorRenderer.js';
 import geometry from './geometry.js';
 import * as C2S from 'canvas2svg';
-import * as sceneObjs from './sceneObjs.js';
 import BaseGlass from './sceneObjs/BaseGlass.js';
+import Detector from './sceneObjs/other/Detector.js';
 import i18next from 'i18next';
 
 /**
@@ -1086,7 +1086,7 @@ class Simulator {
     if (this.brightnessScale == -1) {
       let hasDetector = false;
       for (let obj of this.scene.opticalObjs) {
-        if (obj instanceof sceneObjs["Detector"]) {
+        if (obj instanceof Detector) {
           hasDetector = true;
           break;
         }
