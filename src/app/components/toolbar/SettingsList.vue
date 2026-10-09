@@ -73,6 +73,43 @@
     :layout="layout"
   />
 
+  <ToggleControl
+    :label="$t('simulator:settings.wavelengthSwitch.title')"
+    :popoverContent="$t('simulator:settings.wavelengthSwitch.description')"
+    v-model="wavelengthSwitchEnabled"
+    :layout="layout"
+  />
+
+  <WavelengthSwitchControl
+    v-if="wavelengthSwitchEnabled"
+    :label="$t('simulator:settings.wavelengthSwitch.current') + ' (nm)'"
+    v-model="wavelengthSwitchCurrent"
+    :layout="layout"
+    :min="wavelengthSwitchMin"
+    :max="wavelengthSwitchMax"
+    :nextLabel="$t('simulator:settings.wavelengthSwitch.next')"
+    @next="wavelengthSwitchNext"
+  />
+
+  <ToggleControl
+    v-if="wavelengthSwitchEnabled"
+    :label="$t('simulator:settings.wavelengthSwitch.auto')"
+    :popoverContent="$t('simulator:settings.wavelengthSwitch.autoDescription')"
+    v-model="wavelengthSwitchAuto"
+    :layout="layout"
+  />
+
+  <NumberControl
+    v-if="wavelengthSwitchEnabled"
+    :label="$t('simulator:settings.wavelengthSwitch.interval') + ' (s)'"
+    v-model="wavelengthSwitchInterval"
+    :min="wavelengthSwitchMinInterval"
+    :max="wavelengthSwitchMaxInterval"
+    :default-value="1"
+    :layout="layout"
+    :disabled="!wavelengthSwitchAuto"
+  />
+
   <span 
     v-if="!shouldShowAdvancedSettings && !shouldShowAdvancedByDefault"
     id="showAdvancedSettings" 
@@ -206,9 +243,11 @@
 import { vTooltipPopover } from '../../directives/tooltip-popover'
 import { useSceneStore } from '../../store/scene'
 import { usePreferencesStore } from '../../store/preferences'
+import { useWavelengthSwitchStore } from '../../store/wavelengthSwitch'
 import ToggleControl from './controls/ToggleControl.vue'
 import NumberControl from './controls/NumberControl.vue'
 import ZoomControl from './controls/ZoomControl.vue'
+import WavelengthSwitchControl from './controls/WavelengthSwitchControl.vue'
 import PopupSelectControl from './controls/PopupSelectControl.vue'
 import RayDensityBar from './RayDensityBar.vue'
 import LayoutAidsBar from './LayoutAidsBar.vue'
@@ -225,6 +264,7 @@ export default {
     NumberControl,
     ToggleControl,
     ZoomControl,
+    WavelengthSwitchControl,
     PopupSelectControl,
     RayDensityBar,
     SettingsWarning,
@@ -239,6 +279,7 @@ export default {
   setup() {
     const scene = useSceneStore()
     const preferences = usePreferencesStore()
+    const wavelengthSwitch = useWavelengthSwitchStore()
     const themeStore = useThemeStore()
     const colorMode = toRef(scene, 'colorMode')
     const lang = ref(window.lang)
@@ -304,6 +345,15 @@ export default {
       observerSize: scene.observerSize,
       lengthScale: scene.lengthScale,
       zoom: scene.zoom,
+      wavelengthSwitchEnabled: wavelengthSwitch.enabled,
+      wavelengthSwitchCurrent: wavelengthSwitch.current,
+      wavelengthSwitchAuto: wavelengthSwitch.auto,
+      wavelengthSwitchInterval: wavelengthSwitch.interval,
+      wavelengthSwitchMin: wavelengthSwitch.minWavelength,
+      wavelengthSwitchMax: wavelengthSwitch.maxWavelength,
+      wavelengthSwitchMinInterval: wavelengthSwitch.minInterval,
+      wavelengthSwitchMaxInterval: wavelengthSwitch.maxInterval,
+      wavelengthSwitchNext: wavelengthSwitch.next,
       simulateColors: scene.simulateColors,
       redWavelength: scene.redWavelength,
       violetWavelength: scene.violetWavelength,

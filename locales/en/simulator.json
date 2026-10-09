@@ -82,6 +82,15 @@
     "zoom": {
       "title": "Zoom"
     },
+    "wavelengthSwitch": {
+      "title": "Wavelength Switching",
+      "description": "When enabled, the wavelength of all light sources in the scene can be switched together, either by pressing the next button or automatically, among a preset list of common wavelengths (450, 488, 515, 520, 532, 633, 635, 637, 638, 642, 658, 670, 685, 700 nm), or set to any custom value below. Automatically turns on \"Simulate Colors\".",
+      "current": "Current Wavelength",
+      "next": "Switch to the next preset wavelength",
+      "auto": "Auto Switch",
+      "autoDescription": "Automatically switch to the next preset wavelength at the interval set below.",
+      "interval": "Switch Interval"
+    },
     "showAdvancedSettings": {
       "title": "More scene settings"
     },
