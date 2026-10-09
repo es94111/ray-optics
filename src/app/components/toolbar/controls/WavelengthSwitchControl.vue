@@ -1,5 +1,5 @@
 <!--
-  Copyright 2025 The Ray Optics Simulation authors and contributors
+  Copyright 2026 The Ray Optics Simulation authors and contributors
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -26,24 +26,26 @@
   >
     <div class="col-auto settings-label" v-html="label"></div>
     <div class="col-auto d-flex align-items-center">
-      <button class="btn shadow-none range-minus-btn" @click="handleMinus">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dash" viewBox="0 0 16 16">
-          <path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8z"/>
-        </svg>
-      </button>
-      <input
-        type="text"
-        class="settings-number percentage-value"
+      <input 
+        type="text" 
+        class="settings-number" 
+        :class="{ 'settings-control-value--disabled': disabled }"
         v-model="inputValue"
+        :disabled="disabled"
         @keyup.enter="handleEnter"
         @keydown="handleKeydown"
         @blur="handleBlur"
-        @click="$event.target.select()"
+        @click="!disabled && $event.target.select()"
       >
-      <span class="percentage-suffix">%</span>
-      <button class="btn shadow-none range-plus-btn" @click="handlePlus">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
-          <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+      <button 
+        class="btn shadow-none wavelength-next-btn" 
+        :class="{ 'settings-control-value--disabled': disabled }"
+        :disabled="disabled" 
+        :title="nextLabel"
+        @click="handleNext"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16">
+          <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
         </svg>
       </button>
     </div>
@@ -52,23 +54,24 @@
 
 <script>
 /**
- * @module ZoomControl
- * @description The vue component for the zoom control in the setting dropdown.
- * @vue-prop {String} label - The label for the zoom control.
- * @vue-prop {Number} modelValue - The current value of the zoom control.
+ * @module WavelengthSwitchControl
+ * @description The vue component for the current-wavelength value (editable) with a "next" button, used by the wavelength switching feature in the setting dropdown.
+ * @vue-prop {String} label - The label for the control.
+ * @vue-prop {Number} modelValue - The current wavelength (nm).
  * @vue-prop {String} layout - The layout of the control. Can be 'mobile' or 'desktop'.
  * @vue-prop {String} [popoverContent=''] - The content of the popover.
  * @vue-prop {Number} [verticalOffset=0] - The vertical offset of the popover.
- * @vue-prop {Number} [step=1.1] - The step of the zoom control.
- * @vue-prop {Number} [minPercentage=1] - The minimum zoom percentage allowed when typed directly.
- * @vue-prop {Number} [maxPercentage=100000] - The maximum zoom percentage allowed when typed directly.
+ * @vue-prop {Number} min - The minimum allowed wavelength.
+ * @vue-prop {Number} max - The maximum allowed wavelength.
+ * @vue-prop {Boolean} [disabled=false] - If true, the control is read-only and visually de-emphasized.
+ * @vue-prop {String} [nextLabel=''] - The tooltip title of the "next" button.
  */
 import { computed, toRef, ref, watch } from 'vue'
 import { vTooltipPopover } from '../../../directives/tooltip-popover'
 import { usePreferencesStore } from '../../../store/preferences'
 
 export default {
-  name: 'ZoomControl',
+  name: 'WavelengthSwitchControl',
   directives: {
     'tooltip-popover': vTooltipPopover
   },
@@ -93,17 +96,21 @@ export default {
       type: Number,
       default: 0
     },
-    step: {
+    min: {
       type: Number,
-      default: 1.1
+      required: true
     },
-    minPercentage: {
+    max: {
       type: Number,
-      default: 1
+      required: true
     },
-    maxPercentage: {
-      type: Number,
-      default: 100000
+    disabled: {
+      type: Boolean,
+      default: false
+    },
+    nextLabel: {
+      type: String,
+      default: ''
     }
   },
   setup(props, { emit }) {
@@ -111,43 +118,28 @@ export default {
     const help = toRef(preferences, 'help')
     const tooltipType = computed(() => help.value ? 'popover' : null)
 
-    const toPercentageString = (value) => Math.round(value * 100).toString()
+    const inputValue = ref(Math.round(props.modelValue).toString())
 
-    // Local editable text for the percentage input, kept in sync with modelValue.
-    const inputValue = ref(toPercentageString(props.modelValue))
-
-    // Watch for external changes to modelValue (e.g. from the +/- buttons, mouse wheel, or pinch zoom)
+    // Watch for external changes to modelValue (e.g. from the "next" button or auto-switch timer)
     watch(() => props.modelValue, (newVal) => {
-      inputValue.value = toPercentageString(newVal)
+      inputValue.value = Math.round(newVal).toString()
     })
 
     const validateAndEmit = (value) => {
       const parsed = parseFloat(value)
       if (value === '' || Number.isNaN(parsed)) {
-        inputValue.value = toPercentageString(props.modelValue)
+        inputValue.value = Math.round(props.modelValue).toString()
         return
       }
-      const clampedPercentage = Math.min(props.maxPercentage, Math.max(props.minPercentage, parsed))
-      inputValue.value = Math.round(clampedPercentage).toString()
-      emit('update:modelValue', clampedPercentage / 100)
-    }
-
-    const handlePlus = (e) => {
-      emit('update:modelValue', props.modelValue * props.step)
-      e.target.blur()
-    }
-
-    const handleMinus = (e) => {
-      emit('update:modelValue', props.modelValue / props.step)
-      e.target.blur()
+      const clamped = Math.min(props.max, Math.max(props.min, Math.round(parsed)))
+      inputValue.value = clamped.toString()
+      emit('update:modelValue', clamped)
     }
 
     return {
       tooltipType,
       inputValue,
-      validateAndEmit,
-      handlePlus,
-      handleMinus
+      validateAndEmit
     }
   },
   methods: {
@@ -155,36 +147,37 @@ export default {
       e.stopPropagation()
     },
     handleEnter(e) {
+      if (this.disabled) return
       this.validateAndEmit(e.target.value)
       e.target.select() // Re-select the text after validation
     },
     handleBlur(e) {
+      if (this.disabled) return
       this.validateAndEmit(e.target.value)
+    },
+    handleNext(e) {
+      e.target.blur()
+      if (!this.disabled) this.$emit('next')
     }
   },
-  emits: ['update:modelValue']
+  emits: ['update:modelValue', 'next']
 }
 </script>
 
 <style scoped>
-.range-minus-btn,
-.range-plus-btn {
+.settings-number {
+  height: 23px;
+  margin-right: 4px;
+}
+
+.wavelength-next-btn {
   height: 30px;
+  padding-left: 7px;
+  padding-right: 7px;
   padding-top: 0;
   padding-bottom: 0;
   display: inline-flex;
   align-items: center;
   box-sizing: border-box;
-}
-
-.percentage-value {
-  height: 23px;
-  width: 44px;
-  margin-right: 0;
-}
-
-.percentage-suffix {
-  padding-right: 2px;
-  padding-left: 1px;
 }
 </style>
