@@ -1,6 +1,18 @@
 {
-  "currentVersion": "1.7.0",
+  "currentVersion": "1.7.1",
   "releases": [
+    {
+      "version": "1.7.1",
+      "date": "2026-11-06",
+      "title": "更新相依套件至最新版本",
+      "type": "improved",
+      "changes": [
+        {
+          "tag": "improved",
+          "text": "將專案使用到的所有相依套件更新至最新版本，包括 simple-git 4.x、webpack 5.112、Vue 3.5.45、i18next 26.7、Sass 1.108 等，並同步調整建置腳本以相容新版套件。此次更新為維護性質，所有功能與既有場景不受影響。"
+        }
+      ]
+    },
     {
       "version": "1.7.0",
       "date": "2026-10-09",
